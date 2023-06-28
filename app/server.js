@@ -1,16 +1,20 @@
 const express = require("express");
 const app = express();
-const genericCRUDRouter = require("./routes/genericRouter");
-const GenericController = require("./controllers/generic.controller");
+const UserRouter = require("./routes/user.router");
+const QuizzRouter = require("./routes/quizz.router");
 const errorsHandler = require("./middlewares/errorHandler");
-const UserService = require("./services/user.service");
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+const db = require("./db");
+const connection = db();
 
 app.use(express.json());
 
-app.use(
-	"/users",
-	new genericCRUDRouter(new GenericController(new UserService()))
-);
+app.use("/users", new UserRouter());
+
+app.use("/quizzs", new QuizzRouter());
 
 app.get("/", (req, res) => {
 	res.send("Hello World!");
@@ -19,6 +23,14 @@ app.get("/", (req, res) => {
 app.post("/", (req, res) => {
 	console.log(req.body);
 	res.send("Got a POST request");
+});
+
+app.get("/is-mongoose-ok", function (req, res) {
+	if (mongoose) {
+		res.json({ isMongooseOk: !!mongoose.connection.readyState });
+	} else {
+		res.json({ isMongooseOk: false });
+	}
 });
 
 app.use(errorsHandler);

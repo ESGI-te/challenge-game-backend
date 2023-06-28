@@ -1,23 +1,23 @@
 const ValidationError = require("../errors/ValidationError");
-const User = require("../models/user.model");
+const Quizz = require("../models/quizz.model");
 
 module.exports = function () {
 	return {
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
 			try {
-				const userList = await User.find(criteria)
+				const quizzList = await Quizz.find(criteria)
 					.limit(itemsPerPage)
 					.skip((page - 1) * itemsPerPage)
 					.sort(order);
-				return userList;
+				return quizzList;
 			} catch (error) {
 				throw error;
 			}
 		},
 		async create(data) {
 			try {
-				const user = await User.create(data);
-				return user;
+				const quizz = await Quizz.create(data);
+				return quizz;
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseError(error);
@@ -27,8 +27,8 @@ module.exports = function () {
 		},
 		async findOne(id) {
 			try {
-				const user = await User.findById(id);
-				return user;
+				const quizz = await Quizz.findById(id);
+				return quizz;
 			} catch (error) {
 				throw error;
 			}
@@ -36,9 +36,9 @@ module.exports = function () {
 		async replaceOne(id, newData) {
 			try {
 				const deleted = await this.deleteOne(id);
-				const user = await this.create({ ...newData, _id: id });
+				const quizz = await this.create({ ...newData, _id: id });
 
-				return [user, !deleted];
+				return [quizz, !deleted];
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseError(error);
@@ -48,10 +48,10 @@ module.exports = function () {
 		},
 		async updateOne(id, newData) {
 			try {
-				const user = await User.findByIdAndUpdate(id, newData, {
+				const quizz = await Quizz.findByIdAndUpdate(id, newData, {
 					new: true,
 				});
-				return user;
+				return quizz;
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseError(error);
@@ -61,7 +61,7 @@ module.exports = function () {
 		},
 		async deleteOne(id) {
 			try {
-				await User.findByIdAndDelete(id);
+				await Quizz.findByIdAndDelete(id);
 				return true;
 			} catch (error) {
 				throw error;
