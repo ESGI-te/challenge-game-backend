@@ -1,36 +1,36 @@
-module.exports = function (connection) {
-	const { DataTypes, Model } = require("sequelize");
+const mongoose = require("mongoose");
 
-	class User extends Model {}
+/**
+ * User schema
+ */
 
-	User.init(
-		{
-			firstname: DataTypes.STRING,
-			lastname: DataTypes.STRING,
-			email: {
-				type: DataTypes.STRING,
-				validate: {
-					isEmail: true,
-				},
-				allowNull: false,
-				unique: true,
-			},
-			password: {
-				type: DataTypes.STRING,
-				allowNull: false,
-				validate: {
-					//len: [8, 32],
-					//is: /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$/i,
-				},
-			},
+const UserSchema = new mongoose.Schema({
+	firstname: { type: String, required: true },
+	lastname: String,
+	email: {
+		type: String,
+		required: true,
+		unique: true,
+		validate: {
+			validator: (value) => validator.isEmail(value),
+			message: "Invalid email",
 		},
-		{
-			tableName: "users",
-			sequelize: connection,
-			//timestamps: false,
-			//paranoid: true // soft delete
-		}
-	);
+	},
+	password: { type: String, required: true },
+});
 
-	return User;
-};
+/**
+ * Methods
+ */
+
+UserSchema.methods = {};
+
+/**
+ * Statics
+ */
+
+UserSchema.statics = {};
+
+const User = mongoose.model("User", UserSchema);
+
+module.exports = User;

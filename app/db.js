@@ -1,23 +1,12 @@
-const Sequelize = require("sequelize");
-const fs = require("fs");
-const path = require("path");
-const connection = new Sequelize(process.env.DATABASE_URL);
+const mongoose = require("mongoose");
 
-connection
-	.authenticate()
-	.then(() => {
+const db = async () => {
+	try {
+		await mongoose.connect(process.env.DATABASE_URL);
 		console.log("Connection has been established successfully.");
-	})
-	.catch((error) => {
+	} catch (error) {
 		console.error("Unable to connect to the database:", error);
-	});
-
-const db = { connection };
-
-const files = fs.readdirSync(path.join(__dirname, "models"));
-files.forEach((file) => {
-	const model = require(path.join(__dirname, "models", file))(connection);
-	db[model.name] = model;
-});
+	}
+};
 
 module.exports = db;
