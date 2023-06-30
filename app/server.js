@@ -7,8 +7,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const db = require("./db");
-const connection = db();
+require("./db")();
 
 app.use(express.json());
 
@@ -23,14 +22,6 @@ app.get("/", (req, res) => {
 app.post("/", (req, res) => {
 	console.log(req.body);
 	res.send("Got a POST request");
-});
-
-app.get("/is-mongoose-ok", function (req, res) {
-	if (mongoose) {
-		res.json({ isMongooseOk: !!mongoose.connection.readyState });
-	} else {
-		res.json({ isMongooseOk: false });
-	}
 });
 
 app.use(errorsHandler);
