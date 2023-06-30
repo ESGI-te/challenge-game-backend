@@ -1,17 +1,17 @@
 module.exports = function (options = {}) {
-	const { Router } = require("express");
-	const router = Router();
-	const QuizzService = require("../services/quizz.service");
-	const QuizzController = require("../controllers/quizz.controller");
-	const controller = new QuizzController(new QuizzService());
+  const { Router } = require("express");
+  const router = Router();
+  const QuizzService = require("../services/quizz.service");
+  const QuizzController = require("../controllers/quizz.controller");
+  const controller = new QuizzController(new QuizzService());
 
-	router.get("/", controller.getAll);
-	router.post("/", controller.create);
+  router.get("/", controller.getAll);
+  router.post("/", controller.create);
 
-	router.get("/:id", controller.getOne);
-	router.put("/:id", controller.replace);
-	router.patch("/:id", controller.update);
-	router.delete("/:id", controller.delete);
+  router.get("/:id", controller.getOne);
+  router.put("/:id", controller.replace);
+  router.patch("/:id", controller.update);
+  router.delete("/:id", controller.delete);
 
-	return router;
+  return router;
 };
