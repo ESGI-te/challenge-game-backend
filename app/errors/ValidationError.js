@@ -5,15 +5,16 @@ class ValidationError extends Error {
 		this.previous = previous;
 	}
 }
-ValidationError.createFromSequelizeValidationError = function (error) {
-	const errors = error.errors.reduce((acc, errorItem) => {
-		if (!acc[errorItem.path]) {
-			acc[errorItem.path] = [];
-		}
-		acc[errorItem.path].push(errorItem.message);
-		return acc;
-	}, {});
-	return new ValidationError(errors, error);
+ValidationError.createFromMongooseValidationError = function (error) {
+	// const errors = error.errors.reduce((acc, errorItem) => {
+	// 	if (!acc[errorItem.path]) {
+	// 		acc[errorItem.path] = [];
+	// 	}
+	// 	acc[errorItem.path].push(errorItem.message);
+	// 	return acc;
+	// }, {});
+	// return new ValidationError(errors, error);
+	console.log(error);
 };
 
 module.exports = ValidationError;
