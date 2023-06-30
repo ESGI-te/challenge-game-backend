@@ -1,17 +1,18 @@
 module.exports = function (options = {}) {
-	const { Router } = require("express");
-	const router = Router();
-	const UserService = require("../services/user.service");
-	const UserController = require("../controllers/user.controller");
-	const controller = new UserController(new UserService());
+  const { Router } = require("express");
+  const router = Router();
+  const UserService = require("../services/user.service");
+  const UserController = require("../controllers/user.controller");
 
-	router.get("/", controller.getAll);
-	router.post("/", controller.create);
+  const userController = new UserController(new UserService());
 
-	router.get("/:id", controller.getOne);
-	router.put("/:id", controller.replace);
-	router.patch("/:id", controller.update);
-	router.delete("/:id", controller.delete);
+  router.get("/", userController.getAll);
+  router.post("/", userController.create);
 
-	return router;
+  router.get("/:id", userController.getOne);
+  router.put("/:id", userController.replace);
+  router.patch("/:id", userController.update);
+  router.delete("/:id", userController.delete);
+
+  return router;
 };
