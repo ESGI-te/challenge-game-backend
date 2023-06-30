@@ -25,7 +25,7 @@ module.exports = function (Service, options = {}) {
 			}
 		},
 		async getOne(req, res) {
-			const quizz = await Service.findOne(parseInt(req.params.id, 10));
+			const quizz = await Service.findOne(req.params.id);
 			if (!quizz) {
 				res.sendStatus(404);
 			} else {
