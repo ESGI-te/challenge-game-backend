@@ -20,7 +20,7 @@ module.exports = function () {
 				return quizz;
 			} catch (error) {
 				if (error.name === "ValidationError") {
-					throw ValidationError.createFromMongooseError(error);
+					throw ValidationError.createFromMongooseValidationError(error);
 				}
 				throw error;
 			}
@@ -41,7 +41,7 @@ module.exports = function () {
 				return [quizz, !deleted];
 			} catch (error) {
 				if (error.name === "ValidationError") {
-					throw ValidationError.createFromMongooseError(error);
+					throw ValidationError.createFromMongooseValidationError(error);
 				}
 				throw error;
 			}
@@ -54,7 +54,7 @@ module.exports = function () {
 				return quizz;
 			} catch (error) {
 				if (error.name === "ValidationError") {
-					throw ValidationError.createFromMongooseError(error);
+					throw ValidationError.createFromMongooseValidationError(error);
 				}
 				throw error;
 			}
