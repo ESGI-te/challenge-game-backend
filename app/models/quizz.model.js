@@ -4,26 +4,23 @@ const mongoose = require("mongoose");
  * Quizz schema
  */
 
-const QuizzSchema = new mongoose.Schema(
-	{
-		category: { type: String, required: true },
-		name: { type: String, required: true },
-		slogan: { type: String, required: true },
-		quizz: {
-			type: [
-				{
-					id: { type: Number, required: true },
-					question: { type: String, required: true },
-					propositions: { type: [String], required: true },
-					answer: { type: String, required: true },
-					anecdote: { type: String, required: true },
-				},
-			],
-			required: true,
-		},
+const QuizzSchema = new mongoose.Schema({
+	category: { type: String, required: true },
+	name: { type: String, required: true },
+	slogan: { type: String, required: true },
+	quizz: {
+		type: [
+			{
+				id: { type: Number, required: true },
+				question: { type: String, required: true },
+				propositions: { type: [String], required: true },
+				answer: { type: String, required: true },
+				anecdote: { type: String, required: true },
+			},
+		],
+		required: true,
 	},
-	{ collection: "Quizz" }
-);
+});
 
 /**
  * Methods
