@@ -2,7 +2,7 @@ const SecurityService = require("../services/security.service");
 const LobbyService = require("../services/lobby.service");
 const { WS_LOBBY_NAMESPACE } = require("../utils/constants");
 
-module.exports = function (io) {
+module.exports = (io) => {
 	const lobbyService = new LobbyService();
 	const securityService = new SecurityService();
 
