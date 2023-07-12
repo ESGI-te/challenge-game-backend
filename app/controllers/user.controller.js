@@ -25,7 +25,7 @@ module.exports = function (Service, options = {}) {
 			}
 		},
 		async getOne(req, res) {
-			const user = await Service.findOne(parseInt(req.params.id, 10));
+			const user = await Service.findOne(req.params.id);
 			if (!user) {
 				res.sendStatus(404);
 			} else {
@@ -35,7 +35,7 @@ module.exports = function (Service, options = {}) {
 		async replace(req, res, next) {
 			try {
 				const [user, created] = await Service.replaceOne(
-					parseInt(req.params.id, 10),
+					req.params.id,
 					req.body
 				);
 
@@ -48,10 +48,7 @@ module.exports = function (Service, options = {}) {
 		},
 		async update(req, res, next) {
 			try {
-				const user = await Service.updateOne(
-					parseInt(req.params.id, 10),
-					req.body
-				);
+				const user = await Service.updateOne(req.params.id, req.body);
 				if (!user) {
 					res.sendStatus(404);
 				} else res.json(user);
@@ -60,7 +57,7 @@ module.exports = function (Service, options = {}) {
 			}
 		},
 		async delete(req, res) {
-			const deleted = await Service.deleteOne(parseInt(req.params.id, 10));
+			const deleted = await Service.deleteOne(req.params.id);
 			if (!deleted) {
 				res.sendStatus(404);
 			} else res.sendStatus(204);

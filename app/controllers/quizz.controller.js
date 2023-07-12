@@ -35,7 +35,7 @@ module.exports = function (Service, options = {}) {
 		async replace(req, res, next) {
 			try {
 				const [quizz, created] = await Service.replaceOne(
-					parseInt(req.params.id, 10),
+					req.params.id,
 					req.body
 				);
 
@@ -48,10 +48,7 @@ module.exports = function (Service, options = {}) {
 		},
 		async update(req, res, next) {
 			try {
-				const quizz = await Service.updateOne(
-					parseInt(req.params.id, 10),
-					req.body
-				);
+				const quizz = await Service.updateOne(req.params.id, req.body);
 				if (!quizz) {
 					res.sendStatus(404);
 				} else res.json(quizz);
@@ -60,7 +57,7 @@ module.exports = function (Service, options = {}) {
 			}
 		},
 		async delete(req, res) {
-			const deleted = await Service.deleteOne(parseInt(req.params.id, 10));
+			const deleted = await Service.deleteOne(req.params.id);
 			if (!deleted) {
 				res.sendStatus(404);
 			} else res.sendStatus(204);
