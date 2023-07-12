@@ -10,6 +10,7 @@ const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
 
 const errorsHandler = require("./middlewares/errorHandler");
+const authGuard = require("./middlewares/auth");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -28,9 +29,13 @@ LobbySocket(io);
 
 app.use(express.json());
 
+app.use("/", new SecurityRouter());
+
+app.use(authGuard);
+
 app.use("/users", new UserRouter());
 app.use("/quizzs", new QuizzRouter());
 app.use("/rooms", new RoomRouter());
-app.use("/", new SecurityRouter());
+app.use("/lobbies", new RoomRouter());
 
 app.use(errorsHandler);
