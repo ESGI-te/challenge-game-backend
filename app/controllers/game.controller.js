@@ -25,8 +25,8 @@ module.exports = function (Service, options = {}) {
 		},
 		async create(req, res, next) {
 			try {
-				const authHeader = req.headers.authorization;
-				const token = authHeader.substring(7); // Remove Bearer from string
+				const authHeader = req.headers["authorization"];
+				const token = authHeader && authHeader.split(" ")[1]; // Remove Bearer from string
 				const user = await securityService.getUserFromToken(token);
 				const uid = generateUID();
 				const roomData = { owner: user.id, invitationCode: uid };
