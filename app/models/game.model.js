@@ -7,8 +7,17 @@ const mongoose = require("mongoose");
 const GameSchema = new mongoose.Schema({
 	players: [
 		{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
+			type: new mongoose.Schema({
+				username: {
+					type: String,
+					required: true,
+				},
+				id: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "User",
+					required: true,
+				},
+			}),
 		},
 	],
 	owner: {

@@ -3,7 +3,8 @@ const app = express();
 const cors = require("cors");
 const UserRouter = require("./routes/user.router");
 const QuizzRouter = require("./routes/quizz.router");
-const RoomRouter = require("./routes/game.router");
+const GameRouter = require("./routes/game.router");
+const LobbyRouter = require("./routes/lobby.router");
 const SecurityRouter = require("./routes/security.router");
 
 const GameSocket = require("./websockets/game.ws");
@@ -13,6 +14,7 @@ const errorsHandler = require("./middlewares/errorHandler");
 const authGuard = require("./middlewares/auth");
 
 const dotenv = require("dotenv");
+const wsAuthGuard = require("./middlewares/WsAuth");
 dotenv.config();
 require("./db")();
 
@@ -23,6 +25,8 @@ const server = app.listen(3000, () => {
 });
 
 const io = require("./socket")(server);
+
+io.use(wsAuthGuard);
 
 GameSocket(io);
 LobbySocket(io);
@@ -35,7 +39,7 @@ app.use(authGuard);
 
 app.use("/users", new UserRouter());
 app.use("/quizzs", new QuizzRouter());
-app.use("/rooms", new RoomRouter());
-app.use("/lobbies", new RoomRouter());
+app.use("/games", new GameRouter());
+app.use("/lobbies", new LobbyRouter());
 
 app.use(errorsHandler);
