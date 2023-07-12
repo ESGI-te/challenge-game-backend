@@ -6,9 +6,11 @@ const QuizzRouter = require("./routes/quizz.router");
 const GameRouter = require("./routes/game.router");
 const LobbyRouter = require("./routes/lobby.router");
 const SecurityRouter = require("./routes/security.router");
+const UserInvitationRouter = require("./routes/userInvitation.router");
 
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
+const UserInvitationSocket = require("./websockets/userInvitation.ws");
 
 const errorsHandler = require("./middlewares/errorHandler");
 const authGuard = require("./middlewares/auth");
@@ -30,6 +32,7 @@ io.use(wsAuthGuard);
 
 GameSocket(io);
 LobbySocket(io);
+UserInvitationSocket(io);
 
 app.use(express.json());
 
@@ -41,5 +44,6 @@ app.use("/users", new UserRouter());
 app.use("/quizzs", new QuizzRouter());
 app.use("/games", new GameRouter());
 app.use("/lobbies", new LobbyRouter());
+app.use("/friend-invitations", new UserInvitationRouter());
 
 app.use(errorsHandler);
