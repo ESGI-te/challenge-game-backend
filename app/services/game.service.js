@@ -54,11 +54,13 @@ module.exports = function () {
 				throw error;
 			}
 		},
-		async addPlayer(gameId, userId) {
+		async addPlayer(gameId, player) {
+			const playerFormatted = { username: player.username, id: player.id };
+
 			try {
 				const game = await Game.findOneAndUpdate(
 					{ _id: gameId, players: { $ne: userId } },
-					{ $push: { players: userId } },
+					{ $push: { players: playerFormatted } },
 					{ new: true }
 				);
 
@@ -67,13 +69,16 @@ module.exports = function () {
 				throw error;
 			}
 		},
-		async removePlayer(gameId, userId) {
+		async removePlayer(gameId, player) {
+			const playerFormatted = { username: player.username, id: player.id };
+
 			try {
-				await Game.findOneAndUpdate(
+				const game = await Game.findOneAndUpdate(
 					{ _id: gameId },
-					{ $pull: { players: userId } },
+					{ $pull: { players: playerFormatted } },
 					{ new: true }
 				);
+				return game;
 			} catch (error) {
 				throw error;
 			}
