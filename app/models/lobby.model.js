@@ -11,8 +11,17 @@ const LobbySchema = new mongoose.Schema({
 	},
 	players: [
 		{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
+			type: new mongoose.Schema({
+				username: {
+					type: String,
+					required: true,
+				},
+				id: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "User",
+					required: true,
+				},
+			}),
 		},
 	],
 	owner: {
@@ -21,6 +30,9 @@ const LobbySchema = new mongoose.Schema({
 	},
 	invitation_code: {
 		type: String,
+	},
+	playersMax: {
+		type: Number,
 	},
 });
 
