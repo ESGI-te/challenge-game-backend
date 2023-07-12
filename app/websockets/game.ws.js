@@ -1,29 +1,41 @@
-const UserService = require("../services/user.service");
-const RoomService = require("../services/lobby.service");
+const SecurityService = require("../services/security.service");
+const GameService = require("../services/game.service");
 const { WS_GAME_NAMESPACE } = require("../utils/constants");
 
 module.exports = function (io) {
-	const userService = new UserService();
-	const gameService = new RoomService();
+	const gameService = new GameService();
+	const securityService = new SecurityService();
 
-	io.of(WS_GAME_NAMESPACE).on("connection", async (socket) => {
+	const namespace = io.of(WS_GAME_NAMESPACE);
+
+	const handleConnection = async (socket) => {
 		const gameId = socket.handshake.query["gameId"];
 		const userId = socket.handshake.query["userId"];
+		const token = socket.handshake.auth.token;
 
-		const user = await userService.findOneById(userId);
-		const game = await gameService.addPlayer(gameId, userId);
+		const player = await securityService.getUserFromToken(token);
+		const game = await gameService.addPlayer(gameId, player);
 
-		if (!game) socket.leave(gameId);
-		else socket.join(gameId);
+		socket.join(gameId);
 
-		io.to(gameId).emit("player_joined", user.username);
+		namespace.to(gameId).emit("notification", {
+			title: "Someone's here",
+			description: `${player.username} just joined the game`,
+		});
+		namespace.to(gameId).emit("players", game.players);
 
 		// TODO: Add game events
 
 		socket.on("disconnect", () => {
 			socket.leave(gameId);
-			gameService.removePlayer(gameId, userId);
-			io.to(gameId).emit("player_left", user.username);
+			const { players } = gameService.removePlayer(gameId, userId);
+			namespace.to(gameId).emit("notification", {
+				title: "Someone just left",
+				description: `${player.username} just left the game`,
+			});
+			namespace.to(gameId).emit("players", players);
 		});
-	});
+	};
+
+	namespace.on("connection", handleConnection);
 };

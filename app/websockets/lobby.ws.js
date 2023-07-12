@@ -1,38 +1,50 @@
-const UserService = require("../services/user.service");
+const SecurityService = require("../services/security.service");
 const LobbyService = require("../services/lobby.service");
 const { WS_LOBBY_NAMESPACE } = require("../utils/constants");
 
 module.exports = function (io) {
-	const userService = new UserService();
 	const lobbyService = new LobbyService();
+	const securityService = new SecurityService();
 
-	io.of(WS_LOBBY_NAMESPACE).on("connection", async (socket) => {
+	const namespace = io.of(WS_LOBBY_NAMESPACE);
+
+	const handleConnection = async (socket) => {
 		const lobbyId = socket.handshake.query["lobbyId"];
 		const userId = socket.handshake.query["userId"];
+		const token = socket.handshake.auth.token;
 
-		const player = await userService.findOneById(userId);
-		const lobby = await lobbyService.addPlayer(lobbyId, userId);
+		const player = await securityService.getUserFromToken(token);
+		const lobby = await lobbyService.addPlayer(lobbyId, player);
 
-		if (!lobby) socket.leave(lobbyId);
-		else socket.join(lobbyId);
+		socket.join(lobbyId);
 
-		io.to(lobbyId).emit("player_joined", player.username);
+		namespace.to(lobbyId).emit("notification", {
+			title: "Someone's here",
+			description: `${player.username} just joined the lobby`,
+		});
+
+		namespace.to(lobbyId).emit("players", lobby.players);
 
 		if (lobby.players.length === lobby.playersMax) {
-			io.to(lobbyId).emit("game_start", lobby.gameId);
+			namespace.to(lobbyId).emit("game_start", lobby.gameId);
 			socket.leave(lobbyId);
 			lobbyService.deleteOne(lobbyId);
 		}
 
-		// TODO: Add chat
-		// socket.on("new_message", (id, msg) => {
-		// 	io.to(lobbyId).emit(`${player.username} says ${msg}`);
-		// });
+		socket.on("new_message", (msg) => {
+			namespace.to(lobbyId).emit("message", { player: player.username, msg });
+		});
 
 		socket.on("disconnect", async () => {
 			socket.leave(lobbyId);
-			await lobbyService.removePlayer(lobbyId, userId);
-			io.to(lobbyId).emit("player_left", player.username);
+			const { players } = await lobbyService.removePlayer(lobbyId, userId);
+			namespace.to(lobbyId).emit("notification", {
+				title: "Someone just left",
+				description: `${player.username} just left the lobby`,
+			});
+			namespace.to(lobbyId).emit("players", players);
 		});
-	});
+	};
+
+	namespace.on("connection", handleConnection);
 };
