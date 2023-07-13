@@ -24,11 +24,9 @@ module.exports = () => {
 			}
 		},
 
-		async login(credentials) {
+		async login({ username, password }) {
 			try {
-				const { username, email, password } = credentials;
-				const credential = username ? { username } : { email };
-				const user = await userService.findOne(credential);
+				const user = await userService.findOne({ username });
 
 				const passwordIsValid = bcrypt.compare(password, user.password);
 
