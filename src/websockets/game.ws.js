@@ -3,8 +3,8 @@ const GameService = require("../services/game.service");
 const { WS_GAME_NAMESPACE } = require("../utils/constants");
 
 module.exports = function (io) {
-  const gameService = new GameService();
-  const securityService = new SecurityService();
+  const gameService = GameService();
+  const securityService = SecurityService();
 
   const namespace = io.of(WS_GAME_NAMESPACE);
 
