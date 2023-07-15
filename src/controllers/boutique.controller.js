@@ -1,3 +1,4 @@
+const stripe = require('stripe')(process.env.STRIPE_KEY_PRIVATE_KEY);
 module.exports = function (Service, options = {}) {
 	return {
 		async getAll(req, res) {
@@ -65,5 +66,23 @@ module.exports = function (Service, options = {}) {
 				res.sendStatus(404);
 			} else res.sendStatus(204);
 		},
+		async processPayment(req, res, next) {
+			const { amount, source, description } = req.body;
+	  
+			try {
+			  const paymentIntent = await stripe.paymentIntents.create({
+				amount,
+				currency: 'usd',
+				payment_method_types: ['card'],
+				payment_method: source,
+				description,
+			  });
+	  
+			  const clientSecret = paymentIntent.client_secret;
+			  res.json({ clientSecret });
+			} catch (error) {
+			  next(error);
+			}
+		  },
 	};
 };

@@ -20,6 +20,9 @@ module.exports = function (options = {}) {
 	router.put("/produit/:id", (req, res) => {
 		res.send('Le  produit a été modifié avec succès.');
 	});
+	router.post("/produit/testPaiement", (req, res) => {
+		app.post('/paiement', controller.processPayment);
+	});
   
 	return router;
   };
