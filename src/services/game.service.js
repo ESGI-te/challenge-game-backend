@@ -83,6 +83,65 @@ module.exports = function () {
         throw error;
       }
     },
+
+    async getAlivePlayers(gameId) {
+      try {
+        const game = await this.findOne(gameId);
+        const alivePlayers = game.players.filter((player) => player.lives > 0);
+        return alivePlayers;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async voteCategory(gameId, userId, category) {
+      try {
+        const game = await Game.findById(gameId);
+
+        // If category has not been voted yet
+        if (!game.votedCategories.includes(category)) {
+          game.votedCategories.push(category);
+        }
+
+        await game.save();
+
+        return game;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async getVotedCategories(gameId) {
+      try {
+        const game = await Game.findById(gameId);
+        return game.votedCategories;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async getWinningCategory(gameId) {
+      try {
+        const game = await Game.findById(gameId);
+        if (game.votedCategories.length === 0) {
+          return null;
+        }
+
+        const counts = game.votedCategories.reduce((acc, curr) => {
+          if (curr in acc) {
+            acc[curr]++;
+          } else {
+            acc[curr] = 1;
+          }
+          return acc;
+        }, {});
+
+        const sortedCategories = Object.keys(counts).sort(
+          (a, b) => counts[b] - counts[a]
+        );
+        const winningCategory = sortedCategories[0];
+        return winningCategory;
+      } catch (error) {
+        throw error;
+      }
+    },
     async checkAnswer(gameId, questionId, answer) {
       try {
         const game = await this.findOne(gameId);
