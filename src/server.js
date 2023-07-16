@@ -46,6 +46,6 @@ app.use("/users", UserRouter());
 app.use("/quizzs", QuizzRouter());
 app.use("/games", GameRouter());
 app.use("/lobbies", LobbyRouter());
-app.use("/friend-invitations", UserInvitationRouter());
+app.use("/user-invitations", UserInvitationRouter());
 
 app.use(errorsHandler);

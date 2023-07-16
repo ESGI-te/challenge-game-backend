@@ -5,50 +5,47 @@ const mongoose = require("mongoose");
  */
 
 const GameSchema = new mongoose.Schema({
-  players: [
-    {
-      type: new mongoose.Schema({
-        username: {
-          type: String,
-          required: true,
-        },
-        id: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        score: {
-          type: Number,
-          default: 0,
-        },
-        lives: {
-          type: Number,
-          default: 3,
-        },
-      }),
-    },
-  ],
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  invitationCode: {
-    type: String,
-  },
-  playersMax: {
-    type: Number,
-  },
-  currentQuestion: {
-    type: Object,
-  },
-  currentQuestionStartTime: {
-    type: Date,
-  },
-  votedCategories: [
-    {
-      type: String,
-    },
-  ],
+	players: [
+		{
+			type: new mongoose.Schema({
+				username: {
+					type: String,
+					required: true,
+				},
+				id: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "User",
+					required: true,
+				},
+				score: {
+					type: Number,
+					default: 0,
+				},
+				lives: {
+					type: Number,
+					default: 3,
+				},
+			}),
+		},
+	],
+	owner: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+	},
+	playersMax: {
+		type: Number,
+	},
+	currentQuestion: {
+		type: Object,
+	},
+	currentQuestionStartTime: {
+		type: Date,
+	},
+	votedCategories: [
+		{
+			type: String,
+		},
+	],
 });
 
 /**
