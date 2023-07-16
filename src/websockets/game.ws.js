@@ -27,7 +27,6 @@ module.exports = function (io) {
     });
     namespace.to(gameId).emit("players", game.players);
 
-    // gestion des réponses des users
     socket.on("answer", async ({ questionId, answer }) => {
       const isCorrect = await gameService.checkAnswer(
         gameId,
@@ -48,7 +47,6 @@ module.exports = function (io) {
       }
     });
 
-    // gestion des themes
     socket.on("vote_category", async ({ category }) => {
       await gameService.voteCategory(gameId, userId, category);
       const votedCategories = await gameService.getVotedCategories(gameId);
@@ -58,36 +56,36 @@ module.exports = function (io) {
       const votedPlayersCount = votedCategories.length;
 
       if (playersCount === votedPlayersCount || hasReachedTimeout()) {
-        // tous les joeurs on voté pour le theme selection du theme gagnant
-        const winningCategory = gameService.getWinningCategory(gameId);
+        const winningCategory = await gameService.getWinningCategory(gameId);
         namespace.to(gameId).emit("category_chosen", winningCategory);
-        startGame(gameId);
+        await startGame(gameId);
       }
     });
 
-    // fin d'attente de la selection du theme
     const hasReachedTimeout = () => {
-      const votingTimeout = 45 * 1000; // 45 seconds
+      const votingTimeout = 45 * 1000;
       const elapsedTime = new Date() - game.currentQuestionStartTime;
       return elapsedTime >= votingTimeout;
     };
 
-    // début du quizzz
     const startGame = async (gameId) => {
-      // première question
-      const question = gameService.getNextQuestion(gameId);
+      let question = await gameService.getNextQuestion(gameId);
       namespace.to(gameId).emit("question", question);
 
-      // balance une question toute les 30sec
       const interval = setInterval(async () => {
-        const question = gameService.getNextQuestion(gameId);
+        question = await gameService.getNextQuestion(gameId);
         if (question) {
           namespace.to(gameId).emit("question", question);
         } else {
-          // plus de question fin de partie
-          clearInterval(interval);
-          const winner = gameService.getWinner(gameId);
-          namespace.to(gameId).emit("game_over", winner);
+          const alivePlayers = await gameService.getAlivePlayers(gameId);
+          if (alivePlayers.length > 1) {
+            clearInterval(interval);
+            namespace.to(gameId).emit("choose_category");
+          } else {
+            clearInterval(interval);
+            const winner = gameService.getWinner(gameId);
+            namespace.to(gameId).emit("game_over", winner);
+          }
         }
       }, 30000);
     };
