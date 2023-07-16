@@ -29,14 +29,15 @@ module.exports = (Service, options = {}) => {
 				const token = authHeader && authHeader.split(" ")[1]; // Remove Bearer from string
 				const user = await securityService.getUserFromToken(token);
 				const uid = generateUID();
-				const roomData = { owner: user.id, invitationCode: uid };
+				const roomData = { owner: user.id };
 				const game = await Service.create({ ...req.body, ...roomData });
 				const lobby = await lobbyService.create({
 					...roomData,
 					gameId: game.id,
+					invitation_code: uid,
 					playersMax: req.body.playersMax,
 				});
-				res.status(201).json(lobby);
+				res.status(201).json({ lobbyId: lobby.id });
 			} catch (error) {
 				next(error);
 			}
