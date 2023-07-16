@@ -28,7 +28,7 @@ module.exports = () => {
 			try {
 				const user = await userService.findOne({ username });
 
-				const passwordIsValid = bcrypt.compare(password, user.password);
+				const passwordIsValid = await bcrypt.compare(password, user.password);
 
 				if (!user || !passwordIsValid) {
 					throw new Error("Invalid credentials");

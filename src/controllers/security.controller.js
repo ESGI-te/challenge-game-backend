@@ -20,15 +20,7 @@ module.exports = (Service, options = {}) => {
 
 		async login(req, res) {
 			try {
-				const { username, password, email } = req.body;
-
-				const credentials = {
-					username,
-					password,
-					email,
-				};
-
-				const token = await Service.login(credentials);
+				const token = await Service.login(req.body);
 
 				res.json({ token });
 			} catch (error) {
