@@ -12,8 +12,17 @@ module.exports = (io) => {
 		const lobbyId = socket.handshake.query["lobbyId"];
 		const token = socket.handshake.auth.token;
 
+		const lobby = await lobbyService.findOne(lobbyId);
+
+		if (!lobby) {
+			socket.emit("error", "Lobby not found");
+			return;
+		}
+
+		socket.emit("lobby", lobby);
+
 		const player = await securityService.getUserFromToken(token);
-		const lobby = await lobbyService.addPlayer(lobbyId, player);
+		const lobbyUpdated = await lobbyService.addPlayer(lobbyId, player);
 
 		socket.join(lobbyId);
 
@@ -22,10 +31,13 @@ module.exports = (io) => {
 			description: `${player.username} just joined the lobby`,
 		});
 
-		namespace.to(lobbyId).emit("players", lobby?.players);
+		namespace.to(lobbyId).emit("lobby", lobbyUpdated);
 
-		if (lobby && lobby.players.length === lobby.playersMax) {
-			namespace.to(lobbyId).emit("game_start", lobby?.gameId);
+		if (
+			lobbyUpdated &&
+			lobbyUpdated.players.length === lobbyUpdated.playersMax
+		) {
+			namespace.to(lobbyId).emit("game_start", lobbyUpdated.gameId);
 			socket.leave(lobbyId);
 			lobbyService.deleteOne(lobbyId);
 		}
@@ -36,12 +48,12 @@ module.exports = (io) => {
 
 		socket.on("disconnect", async () => {
 			socket.leave(lobbyId);
-			const { players } = await lobbyService.removePlayer(lobbyId, player?.id);
+			const lobbyUpdated = await lobbyService.removePlayer(lobbyId, player?.id);
 			namespace.to(lobbyId).emit("notification", {
 				title: "Someone just left",
 				description: `${player?.username} just left the lobby`,
 			});
-			namespace.to(lobbyId).emit("players", players);
+			namespace.to(lobbyId).emit("lobby", lobbyUpdated);
 		});
 	};
 
