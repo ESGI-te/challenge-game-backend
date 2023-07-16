@@ -1,5 +1,5 @@
 const SecurityService = require("../services/security.service");
-const { generateUID } = require("../helpers");
+const { generateUID } = require("../utils/helpers");
 
 module.exports = (Service, options = {}) => {
 	const securityService = SecurityService();
@@ -14,12 +14,12 @@ module.exports = (Service, options = {}) => {
 				...criteria
 			} = req.query;
 
-			const games = await Service.findAll(criteria, {
+			const lobbies = await Service.findAll(criteria, {
 				itemsPerPage: _itemsPerPage,
 				page: _page,
 				order: _sort,
 			});
-			res.json(games);
+			res.json(lobbies);
 		},
 		async create(req, res, next) {
 			try {
@@ -28,26 +28,34 @@ module.exports = (Service, options = {}) => {
 				const user = await securityService.getUserFromToken(token);
 				const uid = generateUID();
 				const data = { ...req.body, owner: user.id, invitation_code: uid };
-				const game = await Service.create(data);
-				res.status(201).json(game);
+				const lobby = await Service.create(data);
+				res.status(201).json(lobby);
 			} catch (error) {
 				next(error);
 			}
 		},
 		async getOne(req, res) {
-			const game = await Service.findOne(req.params.id);
-			if (!game) {
+			const lobby = await Service.findOne(req.params.id);
+			if (!lobby) {
 				res.sendStatus(404);
 			} else {
-				res.json(game);
+				res.json(lobby);
+			}
+		},
+		async getOneByCode(req, res) {
+			const lobby = await Service.findOneByCode(req.params.code);
+			if (!lobby) {
+				res.sendStatus(404);
+			} else {
+				res.json(lobby);
 			}
 		},
 		async update(req, res, next) {
 			try {
-				const game = await Service.updateOne(req.params.id, req.body);
-				if (!game) {
+				const lobby = await Service.updateOne(req.params.id, req.body);
+				if (!lobby) {
 					res.sendStatus(404);
-				} else res.json(game);
+				} else res.json(lobby);
 			} catch (error) {
 				next(error);
 			}

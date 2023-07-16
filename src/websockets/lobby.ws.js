@@ -10,7 +10,6 @@ module.exports = (io) => {
 
 	const handleConnection = async (socket) => {
 		const lobbyId = socket.handshake.query["lobbyId"];
-		const userId = socket.handshake.query["userId"];
 		const token = socket.handshake.auth.token;
 
 		const player = await securityService.getUserFromToken(token);
@@ -23,24 +22,24 @@ module.exports = (io) => {
 			description: `${player.username} just joined the lobby`,
 		});
 
-		namespace.to(lobbyId).emit("players", lobby.players);
+		namespace.to(lobbyId).emit("players", lobby?.players);
 
-		if (lobby.players.length === lobby.playersMax) {
-			namespace.to(lobbyId).emit("game_start", lobby.gameId);
+		if (lobby && lobby.players.length === lobby.playersMax) {
+			namespace.to(lobbyId).emit("game_start", lobby?.gameId);
 			socket.leave(lobbyId);
 			lobbyService.deleteOne(lobbyId);
 		}
 
 		socket.on("new_message", (msg) => {
-			namespace.to(lobbyId).emit("message", { player: player.username, msg });
+			namespace.to(lobbyId).emit("message", { player: player?.username, msg });
 		});
 
 		socket.on("disconnect", async () => {
 			socket.leave(lobbyId);
-			const { players } = await lobbyService.removePlayer(lobbyId, userId);
+			const { players } = await lobbyService.removePlayer(lobbyId, player?.id);
 			namespace.to(lobbyId).emit("notification", {
 				title: "Someone just left",
-				description: `${player.username} just left the lobby`,
+				description: `${player?.username} just left the lobby`,
 			});
 			namespace.to(lobbyId).emit("players", players);
 		});

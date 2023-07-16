@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const ValidationError = require("../errors/ValidationError");
 const Lobby = require("../models/lobby.model");
 
@@ -27,7 +28,18 @@ module.exports = () => {
 		},
 		async findOne(id) {
 			try {
+				if (!mongoose.Types.ObjectId.isValid(id)) {
+					return null;
+				}
 				const lobby = await Lobby.findById(id);
+				return lobby;
+			} catch (error) {
+				console.log(error);
+			}
+		},
+		async findOneByCode(code) {
+			try {
+				const lobby = await Lobby.findOne({ invitation_code: code });
 				return lobby;
 			} catch (error) {
 				throw error;
@@ -55,12 +67,13 @@ module.exports = () => {
 			}
 		},
 		async addPlayer(lobbyId, player) {
-			const playerFormatted = { username: player.username, id: player.id };
+			const playerId = player.id;
+			const username = player.username;
 
 			try {
 				const lobby = await Lobby.findOneAndUpdate(
-					{ _id: lobbyId, players: { $ne: player } },
-					{ $push: { players: playerFormatted } },
+					{ _id: lobbyId, "players.id": { $ne: playerId } },
+					{ $addToSet: { players: { id: playerId, username } } },
 					{ new: true }
 				);
 
@@ -69,15 +82,14 @@ module.exports = () => {
 				throw error;
 			}
 		},
-		async removePlayer(lobbyId, player) {
-			const playerFormatted = { username: player.username, id: player.id };
-
+		async removePlayer(lobbyId, playerId) {
 			try {
 				const lobby = await Lobby.findOneAndUpdate(
 					{ _id: lobbyId },
-					{ $pull: { players: playerFormatted } },
+					{ $pull: { players: { id: playerId } } },
 					{ new: true }
 				);
+
 				return lobby;
 			} catch (error) {
 				throw error;
