@@ -55,12 +55,17 @@ module.exports = function () {
       }
     },
     async addPlayer(gameId, player) {
-      const playerFormatted = { username: player.username, id: player.id };
+      const playerId = player.id;
+      const username = player.username;
 
       try {
-        const game = await Game.findOneAndUpdate(
-          { _id: gameId, players: { $ne: player.id } },
-          { $push: { players: playerFormatted } },
+        if (!mongoose.Types.ObjectId.isValid(gameId)) {
+          throw new Error("Invalid gameId");
+        }
+
+        const game = await game.findOneAndUpdate(
+          { _id: gameId, "players.id": { $ne: playerId } },
+          { $addToSet: { players: { id: playerId, username } } },
           { new: true }
         );
 
@@ -69,15 +74,17 @@ module.exports = function () {
         throw error;
       }
     },
-    async removePlayer(gameId, player) {
-      const playerFormatted = { username: player.username, id: player.id };
-
+    async removePlayer(gameId, playerId) {
       try {
-        const game = await Game.findOneAndUpdate(
+        if (!mongoose.Types.ObjectId.isValid(gameId)) {
+          throw new Error("Invalid gameId");
+        }
+        const game = await game.findOneAndUpdate(
           { _id: gameId },
-          { $pull: { players: playerFormatted } },
+          { $pull: { players: { id: playerId } } },
           { new: true }
         );
+
         return game;
       } catch (error) {
         throw error;
