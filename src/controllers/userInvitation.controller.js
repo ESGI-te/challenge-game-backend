@@ -2,6 +2,7 @@ const UserService = require("../services/user.service");
 const SecurityService = require("../services/security.service");
 const {
 	Types: { ObjectId },
+	mongo,
 } = require("mongoose");
 
 module.exports = (Service, options = {}) => {
@@ -51,6 +52,14 @@ module.exports = (Service, options = {}) => {
 
 				if (!recipientUser) {
 					return res.status(404).json({ message: "User not found" });
+				}
+
+				const isFriend = recipientUser.friends.includes(new ObjectId(user.id));
+
+				if (isFriend) {
+					return res
+						.status(400)
+						.json({ message: "You are already friend with this user" });
 				}
 
 				const isDuplicate = await Service.findOne({
