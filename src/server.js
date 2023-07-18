@@ -8,6 +8,7 @@ const LobbyRouter = require("./routes/lobby.router");
 const SecurityRouter = require("./routes/security.router");
 const UserInvitationRouter = require("./routes/userInvitation.router");
 const GameInvitationRouter = require("./routes/gameInvitation.router");
+const TestRouter = require("./routes/test.router.js");
 
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
@@ -31,9 +32,9 @@ const server = app.listen(3000, () => {
 	console.log("App listening on port 3000!");
 });
 
-const io = require("./socket")(server);
+// const io = require("./socket")(server);
 
-io.use(wsAuthGuard);
+// io.use(wsAuthGuard);
 
 NotificationSocket(io);
 FriendsSocket(io);
@@ -47,6 +48,7 @@ app.use("/", SecurityRouter());
 app.use(authGuard);
 
 app.use("/users", UserRouter());
+app.use("/test", TestRouter());
 app.use("/quizzs", QuizzRouter());
 app.use("/quizz-themes", QuizzThemeRouter());
 app.use("/games", GameRouter());
