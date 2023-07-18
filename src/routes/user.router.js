@@ -8,6 +8,7 @@ module.exports = (options = {}) => {
 
 	router.get("/", userController.getAll);
 	router.post("/", userController.create);
+	router.get("/friends", userController.getFriends);
 
 	router.get("/:id", userController.getOne);
 	router.put("/:id", userController.replace);
