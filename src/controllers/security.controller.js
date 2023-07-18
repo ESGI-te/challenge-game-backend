@@ -27,5 +27,15 @@ module.exports = (Service, options = {}) => {
 				res.status(401).json({ message: "Authentication failed" });
 			}
 		},
+		async getUser(req, res) {
+			try {
+				const token = req.headers.authorization.split(" ")[1];
+				const user = await Service.getUserFromToken(token);
+				const { password, ...userData } = user;
+				res.json(userData);
+			} catch (error) {
+				throw error;
+			}
+		},
 	};
 };
