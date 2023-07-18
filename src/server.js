@@ -9,7 +9,7 @@ const UserInvitationRouter = require("./routes/userInvitation.router");
 
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
-const UserInvitationSocket = require("./websockets/userInvitation.ws");
+const NotificationSocket = require("./websockets/notification.ws");
 
 const errorsHandler = require("./middlewares/errorHandler");
 const authGuard = require("./middlewares/auth");
@@ -34,7 +34,7 @@ io.use(wsAuthGuard);
 
 GameSocket(io);
 LobbySocket(io);
-UserInvitationSocket(io);
+NotificationSocket(io);
 
 app.use(express.json());
 

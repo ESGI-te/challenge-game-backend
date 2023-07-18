@@ -13,5 +13,9 @@ module.exports = (options = {}) => {
 	router.patch("/:id", controller.update);
 	router.delete("/:id", controller.delete);
 
+	router.post("/:id/accept", controller.acceptInvitation);
+	router.post("/:id/decline", controller.declineInvitation);
+	router.post("/:id/cancel", controller.cancelInvitation);
+
 	return router;
 };

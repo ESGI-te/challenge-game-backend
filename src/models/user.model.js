@@ -10,13 +10,12 @@ const UserSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		unique: true,
-		// Regexp to validate emails with more strict rules as added in tests/users.js which also conforms mostly with RFC2822 guide lines
 		match: [
 			/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
 			"Please enter a valid email",
 		],
 	},
-	username: { type: String, required: true },
+	username: { type: String, required: true, unique: true },
 	password: { type: String, required: true },
 	roles: {
 		type: [String],
@@ -24,6 +23,7 @@ const UserSchema = new mongoose.Schema({
 		enum: Object.values(USER_ROLES),
 		default: [USER_ROLES.USER],
 	},
+	friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
 });
 
 /**
