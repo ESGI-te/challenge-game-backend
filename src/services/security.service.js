@@ -45,7 +45,7 @@ module.exports = () => {
 			try {
 				const userDecoded = jwt.verify(token, process.env.JWT_SECRET);
 				const user = await userService.findOneById(userDecoded.id);
-				return user;
+				return user._doc;
 			} catch (error) {
 				throw error;
 			}
