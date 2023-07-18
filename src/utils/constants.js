@@ -1,7 +1,7 @@
 module.exports = Object.freeze({
 	WS_LOBBY_NAMESPACE: "/lobby",
 	WS_GAME_NAMESPACE: "/game",
-	WS_FRIEND_INVITATION_NAMESPACE: "/user-invitation",
+	WS_USERS_NAMESPACE: "/users",
 
 	USER_ROLES: {
 		ADMIN: "admin",
