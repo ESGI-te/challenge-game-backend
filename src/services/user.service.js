@@ -97,5 +97,22 @@ module.exports = () => {
 				throw error;
 			}
 		},
+		async findFriends(
+			friendsIds,
+			{ page = null, itemsPerPage = null, order = {} }
+		) {
+			try {
+				const userList = await User.find({ _id: { $in: friendsIds } })
+					.select("_id username")
+					.limit(itemsPerPage)
+					.skip((page - 1) * itemsPerPage)
+					.sort(order)
+					.lean();
+
+				return userList;
+			} catch (error) {
+				throw error;
+			}
+		},
 	};
 };
