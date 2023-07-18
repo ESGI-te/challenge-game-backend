@@ -10,6 +10,7 @@ module.exports = () => {
 					.skip((page - 1) * itemsPerPage)
 					.sort(order);
 				return invitationList;
+				console.log(invitationList);
 			} catch (error) {
 				throw error;
 			}
@@ -25,9 +26,17 @@ module.exports = () => {
 				throw error;
 			}
 		},
-		async findOne(id) {
+		async findOneById(id) {
 			try {
 				const invitation = await UserInvitation.findById(id);
+				return invitation;
+			} catch (error) {
+				throw error;
+			}
+		},
+		async findOne(criteria) {
+			try {
+				const invitation = await UserInvitation.findOne(criteria);
 				return invitation;
 			} catch (error) {
 				throw error;
