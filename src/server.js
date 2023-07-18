@@ -6,6 +6,7 @@ const QuizzThemeRouter = require("./routes/quizzTheme.router");
 const GameRouter = require("./routes/game.router");
 const LobbyRouter = require("./routes/lobby.router");
 const SecurityRouter = require("./routes/security.router");
+const ShopRouter = require("./routes/shop.router");
 const UserInvitationRouter = require("./routes/userInvitation.router");
 const GameInvitationRouter = require("./routes/gameInvitation.router");
 const GameStatsRouter = require("./routes/gameStats.router");
@@ -55,6 +56,7 @@ app.use(authGuard);
 
 app.use("/users", UserRouter());
 app.use("/payment", StripeRouter());
+app.use("/boutique", ShopRouter());
 app.use("/quizzs", QuizzRouter());
 app.use("/quizz-themes", QuizzThemeRouter());
 app.use("/games", GameRouter());
