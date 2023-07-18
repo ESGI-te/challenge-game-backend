@@ -75,5 +75,27 @@ module.exports = () => {
 				throw error;
 			}
 		},
+		async addFriend(id, friendId) {
+			try {
+				const result = await User.updateOne(
+					{ _id: id, "friends.id": { $ne: friendId } },
+					{ $addToSet: { friends: friendId } }
+				);
+				return result.nModified > 0;
+			} catch (error) {
+				throw error;
+			}
+		},
+		async removeFriend(id, friendId) {
+			try {
+				const result = await User.updateOne(
+					{ _id: id },
+					{ $pull: { friends: friendId } }
+				);
+				return result.nModified > 0;
+			} catch (error) {
+				throw error;
+			}
+		},
 	};
 };

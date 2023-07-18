@@ -1,4 +1,13 @@
+const UserService = require("../services/user.service");
+const SecurityService = require("../services/security.service");
+const {
+	Types: { ObjectId },
+} = require("mongoose");
+
 module.exports = (Service, options = {}) => {
+	const userService = UserService();
+	const securityService = SecurityService();
+
 	return {
 		async getAll(req, res) {
 			const {
@@ -6,26 +15,75 @@ module.exports = (Service, options = {}) => {
 				_itemsPerPage = 30,
 				// _sort[id]=ASC&_sort[name]=DESC
 				_sort = {},
+				type,
 				...criteria
 			} = req.query;
 
-			const userInvitations = await Service.findAll(criteria, {
+			const authHeader = req.headers["authorization"];
+			const token = authHeader && authHeader.split(" ")[1];
+			const user = await securityService.getUserFromToken(token);
+			const userType = type === "requested" ? "inviter.id" : "recipient.id";
+			const newCriteria = {
+				...criteria,
+				[userType]: user.id,
+			};
+			const userInvitations = await Service.findAll(newCriteria, {
 				itemsPerPage: _itemsPerPage,
 				page: _page,
 				order: _sort,
 			});
+			// TODO: Remove ids from response
 			res.json(userInvitations);
 		},
 		async create(req, res, next) {
 			try {
-				const userInvitation = await Service.create(req.body);
-				res.status(201).json(userInvitation);
+				const authHeader = req.headers["authorization"];
+				const token = authHeader && authHeader.split(" ")[1]; // Remove Bearer from string
+				const user = await securityService.getUserFromToken(token);
+
+				if (user.username === req.body.username) {
+					return res.status(400).json({ message: "You can't invite yourself" });
+				}
+
+				const recipientUser = await userService.findOne({
+					username: req.body.username,
+				});
+
+				if (!recipientUser) {
+					return res.status(404).json({ message: "User not found" });
+				}
+
+				const isDuplicate = await Service.findOne({
+					"inviter.id": user.id,
+					"recipient.id": recipientUser.id,
+				});
+
+				if (isDuplicate) {
+					return res
+						.status(409)
+						.json({ message: "An invitation to this user already exists" });
+				}
+
+				const invitation = {
+					inviter: {
+						username: user.username,
+						id: user.id,
+					},
+					recipient: {
+						username: recipientUser.username,
+						id: recipientUser.id,
+					},
+				};
+
+				const userInvitation = await Service.create(invitation);
+				return res.status(201).json(userInvitation);
 			} catch (error) {
 				next(error);
 			}
 		},
+
 		async getOne(req, res) {
-			const userInvitation = await Service.findOne(req.params.id);
+			const userInvitation = await Service.findOneById(req.params.id);
 			if (!userInvitation) {
 				res.sendStatus(404);
 			} else {
@@ -61,6 +119,80 @@ module.exports = (Service, options = {}) => {
 			if (!deleted) {
 				res.sendStatus(404);
 			} else res.sendStatus(204);
+		},
+		async acceptInvitation(req, res, next) {
+			try {
+				const token = req.headers["authorization"]?.split(" ")[1];
+
+				const user = await securityService.getUserFromToken(token);
+				const invitation = await Service.findOneById(req.params.id);
+
+				if (!invitation) {
+					return res.status(404).json({ message: "Invitation not found" });
+				}
+				const userId = new ObjectId(user.id);
+
+				if (!userId.equals(invitation.recipient.id)) {
+					return res.status(403).json({ message: "Unauthorized" });
+				}
+
+				await userService.addFriend(user.id, invitation.inviter.id);
+				await userService.addFriend(invitation.inviter.id, user.id);
+
+				await Service.deleteOne(req.params.id);
+
+				res.status(200).json({ message: "Invitation accepted successfully" });
+			} catch (error) {
+				next(error);
+			}
+		},
+
+		async declineInvitation(req, res, next) {
+			try {
+				const token = req.headers["authorization"]?.split(" ")[1];
+
+				const user = await securityService.getUserFromToken(token);
+				const invitation = await Service.findOneById(req.params.id);
+
+				if (!invitation) {
+					return res.status(404).json({ message: "Invitation not found" });
+				}
+				const userId = new ObjectId(user.id);
+
+				if (!userId.equals(invitation.recipient.id)) {
+					return res.status(403).json({ message: "Unauthorized" });
+				}
+
+				await Service.deleteOne(req.params.id);
+
+				res.status(200).json({ message: "Invitation declined successfully" });
+			} catch (error) {
+				next(error);
+			}
+		},
+
+		async cancelInvitation(req, res, next) {
+			try {
+				const token = req.headers["authorization"]?.split(" ")[1];
+
+				const user = await securityService.getUserFromToken(token);
+				const invitation = await Service.findOneById(req.params.id);
+
+				if (!invitation) {
+					return res.status(404).json({ message: "Invitation not found" });
+				}
+
+				const userId = new ObjectId(user.id);
+				if (!userId.equals(invitation.inviter.id)) {
+					return res.status(403).json({ message: "Unauthorized" });
+				}
+
+				await Service.deleteOne(req.params.id);
+
+				res.status(200).json({ message: "Invitation canceled successfully" });
+			} catch (error) {
+				next(error);
+			}
 		},
 	};
 };
