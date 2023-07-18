@@ -1,4 +1,8 @@
+const SecurityService = require("../services/security.service");
+
 module.exports = (Service, options = {}) => {
+	const securityService = SecurityService();
+
 	return {
 		async getAll(req, res) {
 			const {
@@ -61,6 +65,18 @@ module.exports = (Service, options = {}) => {
 			if (!deleted) {
 				res.sendStatus(404);
 			} else res.sendStatus(204);
+		},
+		async getFriends(req, res, next) {
+			try {
+				const token = req.headers.authorization.split(" ")[1];
+				const user = await securityService.getUserFromToken(token);
+
+				const friends = await Service.findFriends(user.friends, {});
+
+				res.json(friends);
+			} catch (error) {
+				next(error);
+			}
 		},
 	};
 };
