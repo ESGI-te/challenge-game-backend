@@ -22,6 +22,12 @@ module.exports = (io) => {
 		socket.emit("lobby", lobby);
 
 		const player = await securityService.getUserFromToken(token);
+
+		if (!player) {
+			socket.emit("error", "Authentication failed");
+			return;
+		}
+
 		const lobbyUpdated = await lobbyService.addPlayer(lobbyId, player);
 
 		socket.join(lobbyId);
