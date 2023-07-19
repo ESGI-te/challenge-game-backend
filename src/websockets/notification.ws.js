@@ -1,6 +1,9 @@
+const UserInvitation = require("../models/userInvitation.model");
+const GameInvitation = require("../models/gameInvitation.model");
 const SecurityService = require("../services/security.service");
 const UserService = require("../services/user.service");
 const { WS_USERS_NAMESPACE } = require("../utils/constants");
+const { debounce } = require("../utils/helpers");
 
 module.exports = (io) => {
 	const userService = UserService();
@@ -17,29 +20,45 @@ module.exports = (io) => {
 
 		if (!user) return;
 
-		connectedUsers[user.id] = socket;
+		connectedUsers[user._id] = socket;
 
-		socket.join(user.id);
+		socket.join(user._id);
 
-		socket.on("send_invitation", async (username) => {
-			const recipientUser = await userService.findOne({ username });
+		socket.on("disconnect", () => {
+			socket.leave(user._id);
+			delete connectedUsers[user._id];
+		});
+	};
 
-			if (!recipientUser) {
-				return;
-			}
-
-			const recipientSocket = connectedUsers[recipientUser.id];
+	/* User invitation */
+	UserInvitation.watch().on("change", async (change) => {
+		try {
+			if (change.operationType !== "insert" || !change.fullDocument) return;
+			const { recipient, inviter } = change.fullDocument;
+			const recipientSocket = connectedUsers[recipient.id];
 
 			if (!recipientSocket) return;
 
-			recipientSocket.emit("receive_invitation", user.username);
-		});
+			recipientSocket.emit("receive_invitation", inviter.username);
+		} catch (error) {
+			console.error(error);
+		}
+	});
 
-		socket.on("disconnect", () => {
-			socket.leave(user.id);
-			delete connectedUsers[user.id];
-		});
-	};
+	/* Game invitation */
+	GameInvitation.watch().on("change", async (change) => {
+		try {
+			if (change.operationType !== "insert" || !change.fullDocument) return;
+			const { recipient } = change.fullDocument;
+			const recipientSocket = connectedUsers[recipient.id];
+
+			if (!recipientSocket) return;
+
+			recipientSocket.emit("receive_game_invitation", change.fullDocument);
+		} catch (error) {
+			console.error(error);
+		}
+	});
 
 	namespace.on("connection", handleConnection);
 };

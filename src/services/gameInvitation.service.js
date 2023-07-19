@@ -1,11 +1,11 @@
 const ValidationError = require("../errors/ValidationError");
-const UserInvitation = require("../models/userInvitation.model");
+const GameInvitation = require("../models/gameInvitation.model");
 
 module.exports = () => {
 	return {
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
 			try {
-				const invitationList = await UserInvitation.find(criteria)
+				const invitationList = await GameInvitation.find(criteria)
 					.limit(itemsPerPage)
 					.skip((page - 1) * itemsPerPage)
 					.sort(order);
@@ -16,7 +16,7 @@ module.exports = () => {
 		},
 		async create(data) {
 			try {
-				const invitation = await UserInvitation.create(data);
+				const invitation = await GameInvitation.create(data);
 				return invitation;
 			} catch (error) {
 				if (error.name === "ValidationError") {
@@ -27,7 +27,7 @@ module.exports = () => {
 		},
 		async findOneById(id) {
 			try {
-				const invitation = await UserInvitation.findById(id);
+				const invitation = await GameInvitation.findById(id);
 				return invitation;
 			} catch (error) {
 				throw error;
@@ -35,7 +35,7 @@ module.exports = () => {
 		},
 		async findOne(criteria) {
 			try {
-				const invitation = await UserInvitation.findOne(criteria);
+				const invitation = await GameInvitation.findOne(criteria);
 				return invitation;
 			} catch (error) {
 				throw error;
@@ -56,7 +56,7 @@ module.exports = () => {
 		},
 		async updateOne(id, newData) {
 			try {
-				const invitation = await UserInvitation.findByIdAndUpdate(id, newData, {
+				const invitation = await GameInvitation.findByIdAndUpdate(id, newData, {
 					new: true,
 				});
 				return invitation;
@@ -69,7 +69,7 @@ module.exports = () => {
 		},
 		async deleteOne(id) {
 			try {
-				await UserInvitation.findByIdAndDelete(id);
+				await GameInvitation.findByIdAndDelete(id);
 				return true;
 			} catch (error) {
 				throw error;
