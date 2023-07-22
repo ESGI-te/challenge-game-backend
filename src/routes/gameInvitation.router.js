@@ -6,12 +6,13 @@ module.exports = (options = {}) => {
 	const controller = GameInvitationController(GameInvitationService());
 
 	router.get("/", controller.getAll);
+	router.post("/", controller.create);
 
 	router.get("/:id", controller.getOne);
 
-	router.post("/:id/accept", controller.acceptInvitation);
-	router.post("/:id/decline", controller.declineInvitation);
-	router.post("/:id/cancel", controller.cancelInvitation);
+	router.post("/accept", controller.acceptInvitation);
+	router.post("/decline", controller.declineInvitation);
+	router.post("/cancel", controller.cancelInvitation);
 
 	return router;
 };
