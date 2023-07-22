@@ -5,13 +5,11 @@ const { WS_LOBBY_NAMESPACE } = require("../utils/constants");
 module.exports = (io) => {
 	const lobbyService = LobbyService();
 	const securityService = SecurityService();
-
 	const namespace = io.of(WS_LOBBY_NAMESPACE);
 
 	const handleConnection = async (socket) => {
-		const lobbyId = socket.handshake.query["lobbyId"];
-		const token = socket.handshake.auth.token;
-
+		const { lobbyId } = socket.handshake.query;
+		const { token } = socket.handshake.auth;
 		const lobby = await lobbyService.findOne(lobbyId);
 
 		if (!lobby) {
@@ -28,9 +26,9 @@ module.exports = (io) => {
 			return;
 		}
 
-		const lobbyUpdated = await lobbyService.addPlayer(lobbyId, player);
-
 		socket.join(lobbyId);
+
+		const lobbyUpdated = await lobbyService.addPlayer(lobbyId, player);
 
 		namespace.to(lobbyId).emit("notification", {
 			title: "Someone's here",
