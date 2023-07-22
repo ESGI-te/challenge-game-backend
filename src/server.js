@@ -38,9 +38,9 @@ const server = app.listen(3000, () => {
   console.log("App listening on port 3000!");
 });
 
-// const io = require("./socket")(server);
+const io = require("./socket")(server);
 
-// io.use(wsAuthGuard);
+io.use(wsAuthGuard);
 
 NotificationSocket(io);
 FriendsSocket(io);
@@ -54,7 +54,7 @@ app.use("/", SecurityRouter());
 app.use(authGuard);
 
 app.use("/users", UserRouter());
-app.use("/test", TestRouter());
+app.use("/payment", StripeRouter());
 app.use("/quizzs", QuizzRouter());
 app.use("/quizz-themes", QuizzThemeRouter());
 app.use("/games", GameRouter());
