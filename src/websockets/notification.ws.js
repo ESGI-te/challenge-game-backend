@@ -1,16 +1,11 @@
 const UserInvitation = require("../models/userInvitation.model");
 const GameInvitation = require("../models/gameInvitation.model");
 const SecurityService = require("../services/security.service");
-const UserService = require("../services/user.service");
 const { WS_USERS_NAMESPACE } = require("../utils/constants");
-const { debounce } = require("../utils/helpers");
 
 module.exports = (io) => {
-	const userService = UserService();
 	const securityService = SecurityService();
-
 	const namespace = io.of(WS_USERS_NAMESPACE);
-
 	const connectedUsers = {};
 
 	const handleConnection = async (socket) => {
@@ -22,10 +17,7 @@ module.exports = (io) => {
 
 		connectedUsers[user._id] = socket;
 
-		socket.join(user._id);
-
 		socket.on("disconnect", () => {
-			socket.leave(user._id);
 			delete connectedUsers[user._id];
 		});
 	};
@@ -39,7 +31,7 @@ module.exports = (io) => {
 
 			if (!recipientSocket) return;
 
-			recipientSocket.emit("receive_invitation", inviter.username);
+			recipientSocket.emit("receive_user_invitation", inviter.username);
 		} catch (error) {
 			console.error(error);
 		}
@@ -54,7 +46,12 @@ module.exports = (io) => {
 
 			if (!recipientSocket) return;
 
-			recipientSocket.emit("receive_game_invitation", change.fullDocument);
+			const invitation = {
+				id: change.fullDocument._id,
+				inviter: change.fullDocument.inviter,
+				lobbyId: change.fullDocument.lobbyId,
+			};
+			recipientSocket.emit("receive_game_invitation", invitation);
 		} catch (error) {
 			console.error(error);
 		}
