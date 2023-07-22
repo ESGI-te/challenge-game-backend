@@ -28,9 +28,6 @@ module.exports = () => {
 		},
 		async findOne(id) {
 			try {
-				if (!mongoose.Types.ObjectId.isValid(id)) {
-					return null;
-				}
 				const lobby = await Lobby.findById(id);
 				return lobby;
 			} catch (error) {

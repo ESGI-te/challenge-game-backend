@@ -11,6 +11,7 @@ const GameInvitationRouter = require("./routes/gameInvitation.router");
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
 const NotificationSocket = require("./websockets/notification.ws");
+const FriendsSocket = require("./websockets/friends.ws");
 
 const errorsHandler = require("./middlewares/errorHandler");
 const authGuard = require("./middlewares/auth");
@@ -33,9 +34,10 @@ const io = require("./socket")(server);
 
 io.use(wsAuthGuard);
 
+NotificationSocket(io);
+FriendsSocket(io);
 GameSocket(io);
 LobbySocket(io);
-NotificationSocket(io);
 
 app.use(express.json());
 

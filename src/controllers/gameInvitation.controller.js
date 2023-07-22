@@ -23,14 +23,15 @@ module.exports = (Service, options = {}) => {
 			const user = await securityService.getUserFromToken(token);
 			const newCriteria = {
 				...criteria,
-				"recipient.id": user.id,
+				"inviter.id": user._id,
 			};
+
 			const gameInvitations = await Service.findAll(newCriteria, {
 				itemsPerPage: _itemsPerPage,
 				page: _page,
 				order: _sort,
 			});
-			// TODO: Remove ids from response
+
 			res.json(gameInvitations);
 		},
 		// TODO: Add verification to check if the user is already in the lobby
@@ -46,7 +47,7 @@ module.exports = (Service, options = {}) => {
 				}
 
 				const isDuplicate = await Service.findOne({
-					"inviter.id": user.id,
+					"inviter.id": user._id,
 					"recipient.id": recipientUser.id,
 				});
 
@@ -60,7 +61,7 @@ module.exports = (Service, options = {}) => {
 					lobbyId,
 					inviter: {
 						username: user.username,
-						id: user.id,
+						id: user._id,
 					},
 					recipient: {
 						username: recipientUser.username,
@@ -87,19 +88,18 @@ module.exports = (Service, options = {}) => {
 				const token = req.headers["authorization"]?.split(" ")[1];
 
 				const user = await securityService.getUserFromToken(token);
-				const invitation = await Service.findOneById(req.params.id);
+				const invitation = await Service.findOneById(req.body.id);
 				const { lobbyId } = invitation;
 
 				if (!invitation) {
 					return res.status(404).json({ message: "Invitation not found" });
 				}
-				const userId = new ObjectId(user.id);
 
-				if (!userId.equals(invitation.recipient.id)) {
+				if (!user._id === invitation.recipient.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
 
-				await Service.deleteOne(req.params.id);
+				await Service.deleteOne(req.body.id);
 
 				res.status(200).json({ lobbyId });
 			} catch (error) {
@@ -111,14 +111,13 @@ module.exports = (Service, options = {}) => {
 				const token = req.headers["authorization"]?.split(" ")[1];
 
 				const user = await securityService.getUserFromToken(token);
-				const invitation = await Service.findOneById(req.params.id);
+				const invitation = await Service.findOneById(req.body.id);
 
 				if (!invitation) {
 					return res.status(404).json({ message: "Invitation not found" });
 				}
-				const userId = new ObjectId(user.id);
 
-				if (!userId.equals(invitation.recipient.id)) {
+				if (!user._id === invitation.recipient.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
 
@@ -134,18 +133,17 @@ module.exports = (Service, options = {}) => {
 				const token = req.headers["authorization"]?.split(" ")[1];
 
 				const user = await securityService.getUserFromToken(token);
-				const invitation = await Service.findOneById(req.params.id);
+				const invitation = await Service.findOneById(req.body.id);
 
 				if (!invitation) {
 					return res.status(404).json({ message: "Invitation not found" });
 				}
 
-				const userId = new ObjectId(user.id);
-				if (!userId.equals(invitation.inviter.id)) {
+				if (!user._id === invitation.inviter.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
 
-				await Service.deleteOne(req.params.id);
+				await Service.deleteOne(req.body.id);
 
 				res.status(200).json({ message: "Invitation canceled successfully" });
 			} catch (error) {

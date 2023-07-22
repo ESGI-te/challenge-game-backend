@@ -18,7 +18,7 @@ const GameInvitationSchema = new mongoose.Schema({
 			},
 			id: {
 				type: mongoose.Schema.Types.ObjectId,
-				ref: "Game",
+				ref: "User",
 				required: true,
 			},
 		}),
@@ -31,7 +31,7 @@ const GameInvitationSchema = new mongoose.Schema({
 			},
 			id: {
 				type: mongoose.Schema.Types.ObjectId,
-				ref: "Game",
+				ref: "User",
 				required: true,
 			},
 		}),

@@ -1,9 +1,5 @@
 const UserService = require("../services/user.service");
 const SecurityService = require("../services/security.service");
-const {
-	Types: { ObjectId },
-	mongo,
-} = require("mongoose");
 
 module.exports = (Service, options = {}) => {
 	const userService = UserService();
@@ -140,9 +136,8 @@ module.exports = (Service, options = {}) => {
 				if (!invitation) {
 					return res.status(404).json({ message: "Invitation not found" });
 				}
-				const userId = new ObjectId(user._id);
 
-				if (!userId.equals(invitation.recipient.id)) {
+				if (!user._id === invitation.recipient.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
 
@@ -167,9 +162,8 @@ module.exports = (Service, options = {}) => {
 				if (!invitation) {
 					return res.status(404).json({ message: "Invitation not found" });
 				}
-				const userId = new ObjectId(user._id);
 
-				if (!userId.equals(invitation.recipient.id)) {
+				if (!user._id === invitation.recipient.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
 
@@ -192,8 +186,7 @@ module.exports = (Service, options = {}) => {
 					return res.status(404).json({ message: "Invitation not found" });
 				}
 
-				const userId = new ObjectId(user._id);
-				if (!userId.equals(invitation.inviter.id)) {
+				if (!user._id === invitation.inviter.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
 
