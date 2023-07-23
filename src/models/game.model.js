@@ -51,11 +51,13 @@ const GameSchema = new mongoose.Schema({
 		{
 			type: new mongoose.Schema(
 				{
-					voters: {
-						type: mongoose.Schema.Types.ObjectId,
-						ref: "User",
-						default: [],
-					},
+					voters: [
+						{
+							type: mongoose.Schema.Types.ObjectId,
+							ref: "User",
+							default: [],
+						},
+					],
 					name: {
 						type: String,
 						required: true,
