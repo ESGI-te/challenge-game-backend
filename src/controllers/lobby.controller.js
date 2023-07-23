@@ -34,7 +34,10 @@ module.exports = (Service, options = {}) => {
 					settings: req.body.settings,
 					owner: user._id,
 					invitation_code: uid,
-					themes: themes.map((theme) => ({ ranking: null, theme: theme._id })),
+					themes: themes.map((theme) => ({
+						name: theme.name,
+						id: theme._id,
+					})),
 				};
 				const lobby = await Service.create(data);
 				res.status(201).json({ code: lobby.invitation_code });

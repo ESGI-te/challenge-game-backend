@@ -17,8 +17,6 @@ module.exports = (io) => {
 			return;
 		}
 
-		socket.emit("lobby", lobby);
-
 		const user = await securityService.getUserFromToken(token);
 
 		if (!user) {
@@ -28,23 +26,35 @@ module.exports = (io) => {
 
 		socket.join(lobby.id);
 
-		const lobbyUpdated = await lobbyService.addPlayer(lobby.id, user);
+		const players = await lobbyService.addPlayer(lobby.id, user);
 
 		namespace.to(lobby.id).emit("notification", {
 			title: "Someone's here",
 			description: `${user.username} just joined the lobby`,
 		});
 
-		namespace.to(lobby.id).emit("lobby", lobbyUpdated);
+		namespace.to(lobby.id).emit("players", players);
 
-		if (
-			lobbyUpdated &&
-			lobbyUpdated.players.length === lobbyUpdated.playersMax
-		) {
-			namespace.to(lobby.id).emit("game_start", lobbyUpdated.gameId);
-			socket.leave(lobby.id);
-			lobbyService.deleteOne(lobby.id);
-		}
+		// if (
+		// 	lobbyUpdated &&
+		// 	lobbyUpdated.players.length === lobbyUpdated.settings.questionTimeplayersMax
+		// ) {
+		// 	namespace.to(lobby.id).emit("game_start", lobbyUpdated.gameId);
+		// 	socket.leave(lobby.id);
+		// 	lobbyService.deleteOne(lobby.id);
+		// }
+
+		socket.on("vote_theme", async (themeId) => {
+			console.log("vote_theme");
+			const themesUpdated = await lobbyService.voteTheme({
+				lobbyId: lobby.id,
+				userId: user._id,
+				themeId,
+			});
+			console.log(themesUpdated);
+			if (!themesUpdated) return;
+			namespace.to(lobby.id).emit("theme_voted", themesUpdated);
+		});
 
 		socket.on("new_message", (msg) => {
 			namespace.to(lobby.id).emit("message", { player: user.username, msg });
@@ -52,12 +62,12 @@ module.exports = (io) => {
 
 		socket.on("disconnect", async () => {
 			socket.leave(lobby.id);
-			const lobbyUpdated = await lobbyService.removePlayer(lobby.id, user._id);
+			const players = await lobbyService.removePlayer(lobby.id, user._id);
 			namespace.to(lobby.id).emit("notification", {
 				title: "Someone just left",
 				description: `${user?.username} just left the lobby`,
 			});
-			namespace.to(lobby.id).emit("lobby", lobbyUpdated);
+			namespace.to(lobby.id).emit("lobby", players);
 		});
 	};
 
