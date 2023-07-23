@@ -1,11 +1,4 @@
-const SecurityService = require("../services/security.service");
-const LobbyService = require("../services/lobby.service");
-const { generateUID } = require("../utils/helpers");
-
 module.exports = (Service, options = {}) => {
-	const securityService = SecurityService();
-	const lobbyService = LobbyService();
-
 	return {
 		async getAll(req, res) {
 			const {
@@ -25,19 +18,8 @@ module.exports = (Service, options = {}) => {
 		},
 		async create(req, res, next) {
 			try {
-				const authHeader = req.headers["authorization"];
-				const token = authHeader && authHeader.split(" ")[1]; // Remove Bearer from string
-				const user = await securityService.getUserFromToken(token);
-				const uid = generateUID();
-				const roomData = { owner: user.id };
-				const game = await Service.create({ ...req.body, ...roomData });
-				const lobby = await lobbyService.create({
-					...roomData,
-					gameId: game.id,
-					invitation_code: uid,
-					playersMax: req.body.playersMax,
-				});
-				res.status(201).json({ code: lobby.invitation_code });
+				const game = await Service.create(req.body);
+				res.status(201).json(game);
 			} catch (error) {
 				next(error);
 			}

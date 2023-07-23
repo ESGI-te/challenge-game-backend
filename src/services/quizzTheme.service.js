@@ -5,9 +5,10 @@ module.exports = () => {
 	return {
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
 			try {
+				const currentPage = Math.max(parseInt(page, 10) || 1, 1);
 				const quizzThemeList = await QuizzTheme.find(criteria)
 					.limit(itemsPerPage)
-					.skip((page - 1) * itemsPerPage)
+					.skip((currentPage - 1) * itemsPerPage)
 					.sort(order);
 				return quizzThemeList;
 			} catch (error) {
