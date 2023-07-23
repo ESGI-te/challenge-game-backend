@@ -1,8 +1,10 @@
 const SecurityService = require("../services/security.service");
+const QuizzThemeService = require("../services/quizzTheme.service");
 const { generateUID } = require("../utils/helpers");
 
 module.exports = (Service, options = {}) => {
 	const securityService = SecurityService();
+	const quizzThemeService = QuizzThemeService();
 
 	return {
 		async getAll(req, res) {
@@ -23,13 +25,19 @@ module.exports = (Service, options = {}) => {
 		},
 		async create(req, res, next) {
 			try {
-				const authHeader = req.headers.authorization;
-				const token = authHeader.substring(7); // Remove Bearer from string
+				const authHeader = req.headers["authorization"];
+				const token = authHeader && authHeader.split(" ")[1];
 				const user = await securityService.getUserFromToken(token);
 				const uid = generateUID();
-				const data = { ...req.body, owner: user.id, invitation_code: uid };
+				const themes = await quizzThemeService.findAll({}, { itemsPerPage: 2 });
+				const data = {
+					settings: req.body.settings,
+					owner: user._id,
+					invitation_code: uid,
+					themes: themes.map((theme) => ({ ranking: null, theme: theme._id })),
+				};
 				const lobby = await Service.create(data);
-				res.status(201).json(lobby);
+				res.status(201).json({ code: lobby.invitation_code });
 			} catch (error) {
 				next(error);
 			}
