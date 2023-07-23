@@ -8,9 +8,9 @@ module.exports = (io) => {
 	const namespace = io.of(WS_LOBBY_NAMESPACE);
 
 	const handleConnection = async (socket) => {
-		const { lobbyId } = socket.handshake.query;
+		const { code } = socket.handshake.query;
 		const { token } = socket.handshake.auth;
-		const lobby = await lobbyService.findOne(lobbyId);
+		const lobby = await lobbyService.findOneByCode(code);
 
 		if (!lobby) {
 			socket.emit("error", "Lobby not found");
@@ -19,45 +19,45 @@ module.exports = (io) => {
 
 		socket.emit("lobby", lobby);
 
-		const player = await securityService.getUserFromToken(token);
+		const user = await securityService.getUserFromToken(token);
 
-		if (!player) {
+		if (!user) {
 			socket.emit("error", "Authentication failed");
 			return;
 		}
 
-		socket.join(lobbyId);
+		socket.join(lobby.id);
 
-		const lobbyUpdated = await lobbyService.addPlayer(lobbyId, player);
+		const lobbyUpdated = await lobbyService.addPlayer(lobby.id, user);
 
-		namespace.to(lobbyId).emit("notification", {
+		namespace.to(lobby.id).emit("notification", {
 			title: "Someone's here",
-			description: `${player.username} just joined the lobby`,
+			description: `${user.username} just joined the lobby`,
 		});
 
-		namespace.to(lobbyId).emit("lobby", lobbyUpdated);
+		namespace.to(lobby.id).emit("lobby", lobbyUpdated);
 
 		if (
 			lobbyUpdated &&
 			lobbyUpdated.players.length === lobbyUpdated.playersMax
 		) {
-			namespace.to(lobbyId).emit("game_start", lobbyUpdated.gameId);
-			socket.leave(lobbyId);
-			lobbyService.deleteOne(lobbyId);
+			namespace.to(lobby.id).emit("game_start", lobbyUpdated.gameId);
+			socket.leave(lobby.id);
+			lobbyService.deleteOne(lobby.id);
 		}
 
 		socket.on("new_message", (msg) => {
-			namespace.to(lobbyId).emit("message", { player: player?.username, msg });
+			namespace.to(lobby.id).emit("message", { player: user?.username, msg });
 		});
 
 		socket.on("disconnect", async () => {
-			socket.leave(lobbyId);
-			const lobbyUpdated = await lobbyService.removePlayer(lobbyId, player?.id);
-			namespace.to(lobbyId).emit("notification", {
+			socket.leave(lobby.id);
+			const lobbyUpdated = await lobbyService.removePlayer(lobby.id, user?.id);
+			namespace.to(lobby.id).emit("notification", {
 				title: "Someone just left",
-				description: `${player?.username} just left the lobby`,
+				description: `${user?.username} just left the lobby`,
 			});
-			namespace.to(lobbyId).emit("lobby", lobbyUpdated);
+			namespace.to(lobby.id).emit("lobby", lobbyUpdated);
 		});
 	};
 

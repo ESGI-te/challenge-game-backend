@@ -1,4 +1,3 @@
-const { default: mongoose } = require("mongoose");
 const ValidationError = require("../errors/ValidationError");
 const Lobby = require("../models/lobby.model");
 
@@ -64,20 +63,15 @@ module.exports = () => {
 			}
 		},
 		async addPlayer(lobbyId, player) {
-			const playerId = player.id;
+			const playerId = player._id;
 			const username = player.username;
 
 			try {
-				if (!mongoose.Types.ObjectId.isValid(lobbyId)) {
-					throw new Error("Invalid lobbyId");
-				}
-
 				const lobby = await Lobby.findOneAndUpdate(
 					{ _id: lobbyId, "players.id": { $ne: playerId } },
 					{ $addToSet: { players: { id: playerId, username } } },
 					{ new: true }
 				);
-
 				return lobby;
 			} catch (error) {
 				throw error;
@@ -85,9 +79,6 @@ module.exports = () => {
 		},
 		async removePlayer(lobbyId, playerId) {
 			try {
-				if (!mongoose.Types.ObjectId.isValid(lobbyId)) {
-					throw new Error("Invalid lobbyId");
-				}
 				const lobby = await Lobby.findOneAndUpdate(
 					{ _id: lobbyId },
 					{ $pull: { players: { id: playerId } } },
