@@ -5,7 +5,11 @@ const mongoose = require("mongoose");
  */
 
 const QuizzSchema = new mongoose.Schema({
-	category: { type: String, required: true },
+	theme: {
+		type: mongoose.Schema.Types.ObjectId,
+		required: true,
+		ref: "QuizzTheme",
+	},
 	name: { type: String, required: true },
 	slogan: { type: String, required: true },
 	quizz: {
