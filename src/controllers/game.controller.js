@@ -37,7 +37,7 @@ module.exports = (Service, options = {}) => {
 					invitation_code: uid,
 					playersMax: req.body.playersMax,
 				});
-				res.status(201).json({ lobbyId: lobby.id });
+				res.status(201).json({ code: lobby.invitation_code });
 			} catch (error) {
 				next(error);
 			}
