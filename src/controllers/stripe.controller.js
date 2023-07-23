@@ -1,29 +1,21 @@
 module.exports = (options = {}) => {
 	const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
-	const products = [
-		{
-			id: "test-product-id",
-			name: "Test Product",
-			description: "Test Product Description",
-			price: 100,
-			quantity: 1,
-		},
-	];
+
 	return {
 		async createCheckoutSession(req, res) {
-			const items = req.body.products.map((id) => {
-				const product = products.find((p) => p.id === id);
-				return {
+			const items =
+				[{
 					price_data: {
-						currency: "eur",
+						currency: 'eur',
 						product_data: {
-							name: product.name,
+						  name: req.body.name,
 						},
-						unit_amount: product.price,
-					},
-					quantity: 1,
-				};
-			});
+						unit_amount: req.body.price,
+					  },
+					  quantity: req.body.quantity,
+				}];
+			
+			console.log(items);
 			const session = await stripe.checkout.sessions.create({
 				payment_method_types: ["card"],
 				line_items: items,
