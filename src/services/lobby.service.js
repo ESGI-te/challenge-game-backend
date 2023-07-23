@@ -73,7 +73,7 @@ module.exports = () => {
 					{ new: true }
 				);
 
-				return lobby;
+				return lobby?.players;
 			} catch (error) {
 				throw error;
 			}
@@ -86,7 +86,26 @@ module.exports = () => {
 					{ new: true }
 				);
 
-				return lobby;
+				return lobby?.players;
+			} catch (error) {
+				throw error;
+			}
+		},
+		async voteTheme({ lobbyId, themeId, userId }) {
+			try {
+				const lobby = await Lobby.findOneAndUpdate(
+					{
+						_id: lobbyId,
+						"themes.id": themeId,
+						"themes.voters": { $ne: userId },
+					},
+					{
+						$addToSet: { "themes.$.voters": userId },
+					},
+					{ new: true }
+				);
+
+				return lobby?.themes;
 			} catch (error) {
 				throw error;
 			}
