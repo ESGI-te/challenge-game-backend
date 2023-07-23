@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const UserRouter = require("./routes/user.router");
 const QuizzRouter = require("./routes/quizz.router");
+const QuizzThemeRouter = require("./routes/quizzTheme.router");
 const GameRouter = require("./routes/game.router");
 const LobbyRouter = require("./routes/lobby.router");
 const SecurityRouter = require("./routes/security.router");
@@ -47,6 +48,7 @@ app.use(authGuard);
 
 app.use("/users", UserRouter());
 app.use("/quizzs", QuizzRouter());
+app.use("/quizz-themes", QuizzThemeRouter());
 app.use("/games", GameRouter());
 app.use("/lobbies", LobbyRouter());
 app.use("/user-invitations", UserInvitationRouter());
