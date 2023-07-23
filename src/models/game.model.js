@@ -28,12 +28,36 @@ const GameSchema = new mongoose.Schema({
 			}),
 		},
 	],
+	settings: {
+		type: new mongoose.Schema({
+			playersMax: {
+				type: Number,
+				default: 5,
+			},
+			questionTime: {
+				type: Number,
+				default: 30,
+			},
+		}),
+		required: true,
+	},
+	themes: [
+		{
+			type: new mongoose.Schema({
+				ranking: {
+					type: Number,
+					required: true,
+				},
+				theme: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "QuizzThemes",
+				},
+			}),
+		},
+	],
 	owner: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User",
-	},
-	playersMax: {
-		type: Number,
 	},
 	currentQuestion: {
 		type: Object,
@@ -41,11 +65,6 @@ const GameSchema = new mongoose.Schema({
 	currentQuestionStartTime: {
 		type: Date,
 	},
-	votedCategories: [
-		{
-			type: String,
-		},
-	],
 });
 
 /**

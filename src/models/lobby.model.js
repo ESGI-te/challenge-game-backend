@@ -5,10 +5,6 @@ const mongoose = require("mongoose");
  */
 
 const LobbySchema = new mongoose.Schema({
-	gameId: {
-		type: String,
-		required: true,
-	},
 	players: [
 		{
 			type: new mongoose.Schema({
@@ -27,13 +23,39 @@ const LobbySchema = new mongoose.Schema({
 	owner: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User",
+		required: true,
 	},
 	invitation_code: {
 		type: String,
+		required: true,
 	},
-	playersMax: {
-		type: Number,
+	settings: {
+		type: new mongoose.Schema({
+			playersMax: {
+				type: Number,
+				default: 5,
+			},
+			questionTime: {
+				type: Number,
+				default: 30,
+			},
+		}),
+		required: true,
 	},
+	themes: [
+		{
+			type: new mongoose.Schema({
+				ranking: {
+					type: Number,
+				},
+				theme: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "QuizzThemes",
+					required: true,
+				},
+			}),
+		},
+	],
 });
 
 /**
