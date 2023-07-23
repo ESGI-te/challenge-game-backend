@@ -7,52 +7,67 @@ const mongoose = require("mongoose");
 const GameSchema = new mongoose.Schema({
 	players: [
 		{
-			type: new mongoose.Schema({
-				username: {
-					type: String,
-					required: true,
+			type: new mongoose.Schema(
+				{
+					username: {
+						type: String,
+						required: true,
+					},
+					id: {
+						type: mongoose.Schema.Types.ObjectId,
+						ref: "User",
+						required: true,
+					},
+					score: {
+						type: Number,
+						default: 0,
+					},
+					lives: {
+						type: Number,
+						default: 3,
+					},
 				},
-				id: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "User",
-					required: true,
-				},
-				score: {
-					type: Number,
-					default: 0,
-				},
-				lives: {
-					type: Number,
-					default: 3,
-				},
-			}),
+				{ _id: false }
+			),
 		},
 	],
 	settings: {
-		type: new mongoose.Schema({
-			playersMax: {
-				type: Number,
-				default: 5,
+		type: new mongoose.Schema(
+			{
+				playersMax: {
+					type: Number,
+					default: 5,
+				},
+				questionTime: {
+					type: Number,
+					default: 30,
+				},
 			},
-			questionTime: {
-				type: Number,
-				default: 30,
-			},
-		}),
+			{ _id: false }
+		),
 		required: true,
 	},
 	themes: [
 		{
-			type: new mongoose.Schema({
-				ranking: {
-					type: Number,
-					required: true,
+			type: new mongoose.Schema(
+				{
+					voters: {
+						type: mongoose.Schema.Types.ObjectId,
+						ref: "User",
+						default: [],
+					},
+					name: {
+						type: String,
+						required: true,
+					},
+					id: {
+						type: mongoose.Schema.Types.ObjectId,
+						ref: "QuizzThemes",
+						required: true,
+					},
 				},
-				theme: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "QuizzThemes",
-				},
-			}),
+				{ _id: false }
+			),
 		},
 	],
 	owner: {
