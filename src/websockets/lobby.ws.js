@@ -47,12 +47,12 @@ module.exports = (io) => {
 		}
 
 		socket.on("new_message", (msg) => {
-			namespace.to(lobby.id).emit("message", { player: user?.username, msg });
+			namespace.to(lobby.id).emit("message", { player: user.username, msg });
 		});
 
 		socket.on("disconnect", async () => {
 			socket.leave(lobby.id);
-			const lobbyUpdated = await lobbyService.removePlayer(lobby.id, user?._id);
+			const lobbyUpdated = await lobbyService.removePlayer(lobby.id, user._id);
 			namespace.to(lobby.id).emit("notification", {
 				title: "Someone just left",
 				description: `${user?.username} just left the lobby`,
