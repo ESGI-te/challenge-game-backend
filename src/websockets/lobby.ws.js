@@ -52,7 +52,7 @@ module.exports = (io) => {
 
 		socket.on("disconnect", async () => {
 			socket.leave(lobby.id);
-			const lobbyUpdated = await lobbyService.removePlayer(lobby.id, user?.id);
+			const lobbyUpdated = await lobbyService.removePlayer(lobby.id, user?._id);
 			namespace.to(lobby.id).emit("notification", {
 				title: "Someone just left",
 				description: `${user?.username} just left the lobby`,
