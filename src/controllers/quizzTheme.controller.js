@@ -9,12 +9,14 @@ module.exports = (Service, options = {}) => {
 				...criteria
 			} = req.query;
 
-			const quizzThemes = await Service.findAll(criteria, {
-				itemsPerPage: _itemsPerPage,
-				page: _page,
-				order: _sort,
-			});
-			res.json(quizzThemes);
+			const criteriaByIds = req.query.ids;
+			console.log(criteriaByIds);
+			// const quizzThemes = await Service.findAll(criteria, {
+			// 	itemsPerPage: _itemsPerPage,
+			// 	page: _page,
+			// 	order: _sort,
+			// });
+			// res.json(quizzThemes);
 		},
 		async create(req, res, next) {
 			try {
