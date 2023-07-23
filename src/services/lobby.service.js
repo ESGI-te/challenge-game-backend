@@ -72,6 +72,7 @@ module.exports = () => {
 					{ $addToSet: { players: { id: playerId, username } } },
 					{ new: true }
 				);
+
 				return lobby;
 			} catch (error) {
 				throw error;
