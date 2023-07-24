@@ -11,12 +11,12 @@ module.exports = (options = {}) => {
   
 	// Définir les routes et associer les méthodes du contrôleur aux routes correspondantes
 	router.get("/", controller.getAll);
-	router.post("/", controller.create);
+	router.post("/products/:id", controller.create);
   
-	router.get("/:id", controller.getOne);
-	router.put("/:id", controller.replace);
-	router.patch("/:id", controller.update);
-	router.delete("/:id", controller.delete);
+	router.get("/products/:id", controller.getOne);
+	router.put("/products/:id", controller.replace);
+	router.patch("/products/:id", controller.update);
+	router.delete("/products/:id", controller.delete);
   
 	return router;
   };
