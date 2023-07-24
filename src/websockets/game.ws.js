@@ -71,7 +71,7 @@ module.exports = function (io) {
 
       let question = allQuizzes[0];
       console.log("First question: ", question);
-      namespace.to(gameId).emit("question", question.question); // Sending only the question text
+      namespace.to(gameId).emit("question", question.question);
 
       let questionIndex = 1;
 
@@ -79,7 +79,7 @@ module.exports = function (io) {
         if (questionIndex < allQuizzes.length) {
           question = allQuizzes[questionIndex];
           console.log("Next question: ", question);
-          namespace.to(gameId).emit("question", question.question); // Sending only the question text
+          namespace.to(gameId).emit("question", question.question);
           questionIndex += 1;
         } else {
           clearInterval(interval);
