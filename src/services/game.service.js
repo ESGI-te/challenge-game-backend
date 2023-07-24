@@ -167,6 +167,7 @@ module.exports = function () {
         throw error;
       }
     },
+    //test
     async getNextQuestionForTheme(gameId, themeId) {
       try {
         const game = await this.findOne(gameId);
