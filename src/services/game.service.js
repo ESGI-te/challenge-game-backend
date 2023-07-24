@@ -1,5 +1,8 @@
 const ValidationError = require("../errors/ValidationError");
 const Game = require("../models/game.model");
+const mongoose = require("mongoose");
+const QuizzTheme = require("../models/quizzTheme.model");
+const Quizz = require("../models/quizz.model");
 
 module.exports = function () {
   return {
@@ -55,17 +58,28 @@ module.exports = function () {
       }
     },
     async addPlayer(gameId, player) {
-      const playerId = player.id;
+      const playerId = player._id;
       const username = player.username;
+      const score = 0;
+      const lives = 3;
 
       try {
         if (!mongoose.Types.ObjectId.isValid(gameId)) {
           throw new Error("Invalid gameId");
         }
 
-        const game = await game.findOneAndUpdate(
-          { _id: gameId, "players.id": { $ne: playerId } },
-          { $addToSet: { players: { id: playerId, username } } },
+        const game = await Game.findOneAndUpdate(
+          { _id: gameId, "players._id": { $ne: playerId } },
+          {
+            $addToSet: {
+              players: {
+                _id: playerId,
+                username: username,
+                score: score,
+                lives: lives,
+              },
+            },
+          },
           { new: true }
         );
 
@@ -79,18 +93,17 @@ module.exports = function () {
         if (!mongoose.Types.ObjectId.isValid(gameId)) {
           throw new Error("Invalid gameId");
         }
-        const game = await game.findOneAndUpdate(
+        const updatedGame = await Game.findOneAndUpdate(
           { _id: gameId },
-          { $pull: { players: { id: playerId } } },
+          { $pull: { players: { _id: playerId } } },
           { new: true }
         );
 
-        return game;
+        return updatedGame;
       } catch (error) {
         throw error;
       }
     },
-
     async getAlivePlayers(gameId) {
       try {
         const game = await this.findOne(gameId);
@@ -100,60 +113,11 @@ module.exports = function () {
         throw error;
       }
     },
-    async voteCategory(gameId, userId, category) {
-      try {
-        const game = await Game.findById(gameId);
-
-        // If category has not been voted yet
-        if (!game.votedCategories.includes(category)) {
-          game.votedCategories.push(category);
-        }
-
-        await game.save();
-
-        return game;
-      } catch (error) {
-        throw error;
-      }
-    },
-    async getVotedCategories(gameId) {
-      try {
-        const game = await Game.findById(gameId);
-        return game.votedCategories;
-      } catch (error) {
-        throw error;
-      }
-    },
-    async getWinningCategory(gameId) {
-      try {
-        const game = await Game.findById(gameId);
-        if (game.votedCategories.length === 0) {
-          return null;
-        }
-
-        const counts = game.votedCategories.reduce((acc, curr) => {
-          if (curr in acc) {
-            acc[curr]++;
-          } else {
-            acc[curr] = 1;
-          }
-          return acc;
-        }, {});
-
-        const sortedCategories = Object.keys(counts).sort(
-          (a, b) => counts[b] - counts[a]
-        );
-        const winningCategory = sortedCategories[0];
-        return winningCategory;
-      } catch (error) {
-        throw error;
-      }
-    },
     async checkAnswer(gameId, questionId, answer) {
       try {
         const game = await this.findOne(gameId);
         return (
-          game.currentQuestion.id === questionId &&
+          game.currentQuestion._id === questionId &&
           game.currentQuestion.answer === answer
         );
       } catch (error) {
@@ -168,12 +132,52 @@ module.exports = function () {
         throw error;
       }
     },
+
+    async getQuestionsForPopularTheme(gameId) {
+      try {
+        const game = await Game.findById(gameId);
+        if (!game) {
+          throw new Error("Game not found");
+        }
+        const popularTheme = game.themes.sort(
+          (a, b) => b.voters.length - a.voters.length
+        )[0];
+        const quizzes = await Quizz.find({ theme: popularTheme.id });
+        if (!quizzes) {
+          throw new Error("No quizzes found for this theme");
+        }
+
+        return quizzes;
+      } catch (error) {
+        throw error;
+      }
+    },
+
     async getNextQuestion(gameId) {
       try {
         const game = await this.findOne(gameId);
         const currentQuestionIndex = game.currentQuestionIndex || 0;
         if (currentQuestionIndex < game.quizz.length) {
           const question = game.quizz[currentQuestionIndex];
+          return question;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        throw error;
+      }
+    },
+    async getNextQuestionForTheme(gameId, themeId) {
+      try {
+        const game = await this.findOne(gameId);
+        const theme = await QuizzTheme.findById(themeId);
+        const currentQuestionIndex = game.currentQuestionIndex || 0;
+        const quizForTheme = game.quizz.filter((quiz) =>
+          quiz.theme.equals(themeId)
+        );
+
+        if (currentQuestionIndex < quizForTheme.length) {
+          const question = quizForTheme[currentQuestionIndex];
           return question;
         } else {
           return null;
@@ -196,7 +200,7 @@ module.exports = function () {
     async incrementScore(gameId, userId, increment) {
       try {
         return await Game.findOneAndUpdate(
-          { _id: gameId, "players.id": userId },
+          { _id: gameId, "players._id": userId },
           { $inc: { "players.$.score": increment } },
           { new: true }
         );
@@ -207,7 +211,7 @@ module.exports = function () {
     async decrementLives(gameId, userId) {
       try {
         return await Game.findOneAndUpdate(
-          { _id: gameId, "players.id": userId },
+          { _id: gameId, "players._id": userId },
           { $inc: { "players.$.lives": -1 } },
           { new: true }
         );
@@ -217,9 +221,9 @@ module.exports = function () {
     },
     async getLives(gameId, userId) {
       try {
-        const game = await Game.findOne({ _id: gameId, "players.id": userId });
+        const game = await Game.findOne({ _id: gameId, "players._id": userId });
         const player = game.players.find(
-          (player) => player.id.toString() === userId
+          (player) => player._id.toString() === userId
         );
         return player.lives;
       } catch (error) {
@@ -230,7 +234,7 @@ module.exports = function () {
       try {
         return await Game.findOneAndUpdate(
           { _id: gameId },
-          { $pull: { players: { id: userId } } },
+          { $pull: { players: { _id: userId } } },
           { new: true }
         );
       } catch (error) {
@@ -240,8 +244,15 @@ module.exports = function () {
     async getWinner(gameId) {
       try {
         const game = await this.findOne(gameId);
+        if (!game || !game.players || game.players.length === 0) {
+          return null;
+        }
         const sortedPlayers = game.players.sort((a, b) => b.score - a.score);
-        return sortedPlayers.slice(0, 10);
+        const highestScore = sortedPlayers[0].score;
+        const winners = sortedPlayers.filter(
+          (player) => player.score === highestScore
+        );
+        return winners;
       } catch (error) {
         throw error;
       }
