@@ -1,5 +1,7 @@
 const UserService = require("../services/user.service");
 const SecurityService = require("../services/security.service");
+const LobbyService = require("../services/lobby.service");
+
 const {
 	Types: { ObjectId },
 } = require("mongoose");
@@ -7,6 +9,7 @@ const {
 module.exports = (Service, options = {}) => {
 	const userService = UserService();
 	const securityService = SecurityService();
+	const lobbyService = LobbyService();
 
 	return {
 		async getAll(req, res) {
@@ -39,14 +42,22 @@ module.exports = (Service, options = {}) => {
 			try {
 				const token = req.headers["authorization"]?.split(" ")[1];
 				const user = await securityService.getUserFromToken(token);
-				const lobbyId = req.body.lobbyId;
+				const invitationCode = req.body.code;
 				const recipientUser = await userService.findOneById(req.body.userId);
 
 				if (!recipientUser) {
 					return res.status(404).json({ message: "User not found" });
 				}
 
+				const lobby = await lobbyService.findOneByCode(invitationCode);
+
+				if (!lobby) {
+					return res.status(404).json({ message: "Lobby not found" });
+				}
+				const { invitation_code } = lobby;
+
 				const isDuplicate = await Service.findOne({
+					invitation_code,
 					"inviter.id": user._id,
 					"recipient.id": recipientUser.id,
 				});
@@ -58,7 +69,7 @@ module.exports = (Service, options = {}) => {
 				}
 
 				const invitation = {
-					lobbyId,
+					invitation_code,
 					inviter: {
 						username: user.username,
 						id: user._id,

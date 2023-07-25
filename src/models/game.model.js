@@ -5,6 +5,15 @@ const mongoose = require("mongoose");
  */
 
 const GameSchema = new mongoose.Schema({
+	code: {
+		type: String,
+		required: true,
+	},
+	theme: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "QuizzTheme",
+		default: null,
+	},
 	players: [
 		{
 			type: new mongoose.Schema(
@@ -78,6 +87,7 @@ const GameSchema = new mongoose.Schema({
 	},
 	currentQuestion: {
 		type: Object,
+		default: null,
 	},
 	currentQuestionStartTime: {
 		type: Date,
