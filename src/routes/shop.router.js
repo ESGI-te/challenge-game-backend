@@ -10,7 +10,7 @@ module.exports = (options = {}) => {
 	const controller = ShopController(ShopService());
   
 	// Définir les routes et associer les méthodes du contrôleur aux routes correspondantes
-	router.get("/", controller.getAll);
+	router.get("/products", controller.getAll);
 	router.post("/products/:id", controller.create);
   
 	router.get("/products/:id", controller.getOne);

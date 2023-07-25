@@ -56,7 +56,7 @@ app.use(authGuard);
 
 app.use("/users", UserRouter());
 app.use("/payment", StripeRouter());
-app.use("/boutique", ShopRouter());
+app.use("/shop", ShopRouter());
 app.use("/quizzs", QuizzRouter());
 app.use("/quizz-themes", QuizzThemeRouter());
 app.use("/games", GameRouter());

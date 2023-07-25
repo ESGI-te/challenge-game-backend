@@ -4,27 +4,27 @@ const mongoose = require("mongoose");
  * User schema
  */
 
-const produitSchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema({
   id: {type: Number,required: true},
-  nom: { type: String, required: true },
+  name: { type: String, required: true },
   description: { type: String, required: true },
-  prix: { type: Number, default: 0 },
-  quantiteEnStock: { type: Number, default: -1 }, // -1 = une infinité
+  price: { type: Number, default: 0 },
+  quantity: { type: Number, default: 1 }, // -1 = une infinité
 });
 
 /**
  * Methods
  */
 
-produitSchema.methods = {};
+ProductSchema.methods = {};
 
 /**
  * Statics
  */
 
-produitSchema.statics = {};
+ProductSchema.statics = {};
 
-const Produit = mongoose.model("Product", produitSchema);
+const Produit = mongoose.model("Product", ProductSchema);
 
 // Exemple de création d'un produit
 // const nouveauProduit = new Produit({

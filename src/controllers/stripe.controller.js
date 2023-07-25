@@ -22,14 +22,15 @@ module.exports = (options = {}) => {
           payment_method_types: ["card"],
           line_items: items,
           mode: "payment",
-          success_url: req.body.product.success_url,
-          cancel_url: req.body.product.cancel_url,
+          success_url: req.body.product.successUrl,
+          cancel_url: req.body.product.cancelUrl,
         });
-
-        res.json({ id: session.id });
-        // res.json(session);
+        
+        // res.json({ id: session.id });
+        res.json(session);
 
       } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Internal server error" });
       }
     },

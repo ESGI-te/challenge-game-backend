@@ -1,5 +1,5 @@
 const ValidationError = require("../errors/ValidationError");
-const Produit = require("../models/produit.model");
+const Produit = require("../models/product.model");
 
 module.exports = function () {
   return {
