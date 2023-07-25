@@ -7,7 +7,7 @@ module.exports = (options = {}) => {
 	const ShopController = require("../controllers/shop.controller.js");
   
 	// Créer une instance du contrôleur en passant le service correspondant
-	const controller = ShopController(ShopController());
+	const controller = ShopController(ShopService());
   
 	// Définir les routes et associer les méthodes du contrôleur aux routes correspondantes
 	router.get("/", controller.getAll);

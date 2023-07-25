@@ -1,5 +1,5 @@
-module.exports = (Products, options = {}) => {
-    return {
+module.exports = (Service, options = {}) => {
+  return {
       // Méthode pour récupérer tous les produits en fonction des critères de recherche, de pagination, etc.
       async getAll(req, res) {
         const {
@@ -9,7 +9,7 @@ module.exports = (Products, options = {}) => {
           ...criteria
         } = req.query;
   
-        const produits = await Products.findAll(criteria, {
+        const produits = await Service.findAll(criteria, {
           itemsPerPage: _itemsPerPage,
           page: _page,
           order: _sort,
@@ -20,12 +20,12 @@ module.exports = (Products, options = {}) => {
   
       // Méthode pour créer un nouveau produit
       async create(req, res, next) {
-        const { name, price } = req.body;
-        if (!name || !price) {
+        const { nom, prix, description, id } = req.body;
+        if (!nom || !prix) {
           return res.status(400).json({ error: 'Veuillez fournir un nom et un prix pour le produit.' });
         }
         try {
-          const produit = await Products.create({ name, price });
+          const produit = await Service.create({id, nom, description, prix,});
           res.status(201).json(produit);
         } catch (error) {
           next(error);
@@ -34,8 +34,7 @@ module.exports = (Products, options = {}) => {
   
       // Méthode pour récupérer un produit par son ID
       async getOne(req, res) {
-        const produit = await Products.findOne(req.params.id);
-  
+        const produit = await Service.findOne({id: req.params.id});
         if (!produit) {
           res.sendStatus(404);
         } else {
@@ -45,24 +44,25 @@ module.exports = (Products, options = {}) => {
   
       // Méthode pour remplacer entièrement un produit existant par un nouveau
       async replace(req, res, next) {
-        const productId = parseInt(req.params.id);
-        const { name, price } = req.body;
-        if (!name || !price) {
-          return res.status(400).json({ error: 'Veuillez fournir un nom et un prix pour le produit.' });
+        try {
+          const [product, created] = await Service.replaceOne(
+            {id: req.params.id},
+            req.body
+          );
+          if(!product){
+            res.sendStatus(404);
+          } else {
+            res.status(created ? 201 : 200).json(product);
+          }
+        } catch(err) {
+          next(err);
         }
-        const productIndex = products.findIndex(product => product.id === productId);
-        if (productIndex === -1) {
-          return res.status(404).json({ error: 'Produit non trouvé.' });
-        }
-        const updatedProduct = { id: productId, name, price };
-        products[productIndex] = updatedProduct;
-        res.json(updatedProduct);
       },
   
       // Méthode pour mettre à jour un produit existant
       async update(req, res, next) {
         try {
-          const produit = await Products.updateOne(req.params.id, req.body);
+          const produit = await Service.updateOne({id: req.params.id}, req.body);
   
           if (!produit) {
             res.sendStatus(404);
@@ -76,21 +76,12 @@ module.exports = (Products, options = {}) => {
   
       // Méthode pour supprimer un produit par son ID
       async delete(req, res) {
-        const productId = parseInt(req.params.id);
-        const productIndex = products.findIndex(product => product.id === productId);
-        if (productIndex === -1) {
-          return res.status(404).json({ error: 'Produit non trouvé.' });
+        const deleted = await Service.deleteOne({id: req.params.id});
+        if(!deleted){
+          res.sendStatus(404);
+        } else {
+          res.sendStatus(204)
         }
-      
-        products.splice(productIndex, 1);
-        res.json({ message: 'Produit supprimé avec succès.' });
-        // const deleted = await Products.deleteOne(req.params.id);
-  
-        // if (!deleted) {
-        //   res.sendStatus(404);
-        // } else {
-        //   res.sendStatus(204);
-        // }
       },
     };
   };

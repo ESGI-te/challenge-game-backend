@@ -17,9 +17,10 @@ const UserSchema = new mongoose.Schema({
 	},
 	username: { type: String, required: true, unique: true },
 	password: { type: String, required: true },
-	prix: {
-		argent: { type: Number, default: 0 }, // Prix en euros
-		pointsCultures: { type: Number, default: 0 }, // Prix en gemmes
+	inventaire: {
+		type: [String],
+		required: true,
+		default: []
 	},
 	roles: {
 		type: [String],

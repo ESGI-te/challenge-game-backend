@@ -31,7 +31,16 @@ module.exports = function () {
     },
 
     // Méthode pour récupérer un produit par son ID
-    async findOne(id) {
+    async findOne(criteria) {
+      try {
+        const produit = await Produit.findOne(criteria);
+        return produit;
+      } catch (error) {
+        throw error;
+      }
+    },
+     // Méthode pour récupérer un produit par son ID
+     async findOneById(id) {
       try {
         const produit = await Produit.findById(id);
         return produit;
@@ -39,11 +48,24 @@ module.exports = function () {
         throw error;
       }
     },
-
+    async replaceOne(id, newData) {
+			try {
+				const deleted = await Produit.deleteOne(id);
+				const product = await Produit.create(newData);
+				return [product, !deleted];
+			} catch (error) {
+				if (error.name === "ValidationError") {
+					throw ValidationError.createFromMongooseValidationError(error);
+				}
+				throw error;
+			}
+		},
     // Méthode pour mettre à jour un produit existant
     async updateOne(id, newData) {
+			const objectId = mongoose.Types.ObjectId(id)
+
       try {
-        const produit = await Produit.findByIdAndUpdate(id, newData, {
+        const produit = await Produit.findByIdAndUpdate(objectId, newData, {
           new: true, // Retourne le produit mis à jour
         });
         return produit;
@@ -59,7 +81,7 @@ module.exports = function () {
     // Méthode pour supprimer un produit par son ID
     async deleteOne(id) {
       try {
-        await Produit.findByIdAndDelete(id);
+        await Produit.deleteOne(id);
         return true;
       } catch (error) {
         throw error;

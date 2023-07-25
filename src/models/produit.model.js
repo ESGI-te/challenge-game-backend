@@ -5,12 +5,10 @@ const mongoose = require("mongoose");
  */
 
 const produitSchema = new mongoose.Schema({
+  id: {type: Number,required: true},
   nom: { type: String, required: true },
   description: { type: String, required: true },
-  prix: {
-    argent: { type: Number, default: 0 }, // Prix en euros
-    pointsCultures: { type: Number, default: 0 }, // Prix en gemmes
-  },
+  prix: { type: Number, default: 0 },
   quantiteEnStock: { type: Number, default: -1 }, // -1 = une infinité
 });
 
