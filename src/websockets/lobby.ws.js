@@ -1,11 +1,73 @@
 const SecurityService = require("../services/security.service");
+const GameService = require("../services/game.service");
 const LobbyService = require("../services/lobby.service");
 const { WS_LOBBY_NAMESPACE } = require("../utils/constants");
+const { generateUID } = require("../utils/helpers");
 
 module.exports = (io) => {
 	const lobbyService = LobbyService();
+	const gameService = GameService();
 	const securityService = SecurityService();
 	const namespace = io.of(WS_LOBBY_NAMESPACE);
+
+	let validationInProgress = new Map(); // TODO: Store the validation state in the database
+	let validationTimers = new Map();
+
+	let lobbyValidatedUsers = new Map(); // TODO: Store the validated users in the database
+
+	const startValidation = (lobbyId) => {
+		validationInProgress.set(lobbyId, true);
+		const validationTime = 30;
+
+		namespace.to(lobbyId).emit("validation_started", validationTime);
+
+		const validationTimer = setTimeout(() => {
+			endValidation(lobbyId);
+		}, validationTime * 1000);
+
+		validationTimers.set(lobbyId, validationTimer);
+	};
+
+	const endValidation = (lobbyId) => {
+		validationInProgress.delete(lobbyId);
+
+		namespace.to(lobbyId).emit("validation_ended");
+
+		clearTimeout(validationTimers.get(lobbyId));
+		validationTimers.delete(lobbyId);
+		lobbyValidatedUsers.delete(lobbyId);
+	};
+
+	const startGame = async (lobbyId) => {
+		endValidation(lobbyId);
+		namespace.to(lobbyId).emit("game_creation_started");
+
+		const { themes, owner, settings } = await lobbyService.findOne(lobbyId);
+		const gameCode = generateUID();
+		const gameData = {
+			themes,
+			owner,
+			settings,
+			code: gameCode,
+		};
+		const game = await gameService.create(gameData);
+
+		if (!game) {
+			namespace.to(lobbyId).emit("error", "Could not create game");
+			return;
+		}
+
+		namespace.to(lobbyId).emit("game_created", gameCode);
+	};
+
+	const chooseRandomThemeFromMostVoted = (themes) => {
+		const maxVotes = Math.max(...themes.map((theme) => theme.voters.length));
+		const mostVotedThemes = themes.filter(
+			(theme) => theme.voters.length === maxVotes
+		);
+		const randomIndex = Math.floor(Math.random() * mostVotedThemes.length);
+		return mostVotedThemes[randomIndex];
+	};
 
 	const handleConnection = async (socket) => {
 		const { code } = socket.handshake.query;
@@ -18,6 +80,7 @@ module.exports = (io) => {
 		}
 
 		const user = await securityService.getUserFromToken(token);
+		const isOwner = lobby.owner.toString() === user._id.toString();
 
 		if (!user) {
 			socket.emit("error", "Authentication failed");
@@ -35,25 +98,60 @@ module.exports = (io) => {
 
 		namespace.to(lobby.id).emit("players", players);
 
-		// if (
-		// 	lobbyUpdated &&
-		// 	lobbyUpdated.players.length === lobbyUpdated.settings.questionTimeplayersMax
-		// ) {
-		// 	namespace.to(lobby.id).emit("game_start", lobbyUpdated.gameId);
-		// 	socket.leave(lobby.id);
-		// 	lobbyService.deleteOne(lobby.id);
-		// }
-
 		socket.on("vote_theme", async (themeId) => {
-			console.log("vote_theme");
-			const themesUpdated = await lobbyService.voteTheme({
+			const themes = await lobbyService.voteTheme({
 				lobbyId: lobby.id,
 				userId: user._id,
 				themeId,
 			});
-			console.log(themesUpdated);
-			if (!themesUpdated) return;
-			namespace.to(lobby.id).emit("theme_voted", themesUpdated);
+
+			if (!themes) return;
+
+			namespace.to(lobby.id).emit("theme_voted", themes);
+
+			const players = await lobbyService.getPlayers(lobby.id);
+			const allPlayersVoted = players.every((player) =>
+				themes.some((theme) => theme.voters.includes(player.id))
+			);
+
+			if (!allPlayersVoted) return;
+
+			const chosenTheme = chooseRandomThemeFromMostVoted(themes);
+			const votedTheme = await lobbyService.setVotedTheme(
+				lobby.id,
+				chosenTheme.id
+			);
+			namespace.to(lobby.id).emit("all_players_voted", votedTheme);
+		});
+
+		/* Validation */
+		socket.on("start_validation", () => {
+			if (!isOwner || validationInProgress.has(lobby.id)) return;
+
+			startValidation(lobby.id);
+		});
+
+		socket.on("cancel_validation", () => {
+			if (!isOwner || !validationInProgress.has(lobby.id)) return;
+
+			endValidation(lobby.id);
+			namespace.to(lobby.id).emit("validation_ended");
+		});
+
+		socket.on("validate", async () => {
+			if (!validationInProgress.has(lobby.id)) return;
+
+			const validatedUsers = lobbyValidatedUsers.get(lobby.id) || new Set();
+			validatedUsers.add(user._id);
+			lobbyValidatedUsers.set(lobby.id, validatedUsers);
+
+			namespace.to(lobby.id).emit("user_validated", Array.from(validatedUsers));
+
+			const players = await lobbyService.getPlayers(lobby.id);
+
+			if (validatedUsers.size !== players.length) return;
+
+			startGame(lobby.id);
 		});
 
 		socket.on("new_message", (msg) => {
@@ -63,10 +161,12 @@ module.exports = (io) => {
 		socket.on("disconnect", async () => {
 			socket.leave(lobby.id);
 			const players = await lobbyService.removePlayer(lobby.id, user._id);
+
 			namespace.to(lobby.id).emit("notification", {
 				title: "Someone just left",
 				description: `${user?.username} just left the lobby`,
 			});
+
 			namespace.to(lobby.id).emit("lobby", players);
 		});
 	};

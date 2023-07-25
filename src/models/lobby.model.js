@@ -65,7 +65,7 @@ const LobbySchema = new mongoose.Schema({
 					},
 					id: {
 						type: mongoose.Schema.Types.ObjectId,
-						ref: "QuizzThemes",
+						ref: "QuizzTheme",
 						required: true,
 					},
 				},
@@ -73,6 +73,11 @@ const LobbySchema = new mongoose.Schema({
 			),
 		},
 	],
+	votedTheme: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "QuizzTheme",
+		default: null,
+	},
 });
 
 /**
