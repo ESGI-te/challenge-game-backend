@@ -5,9 +5,8 @@ const mongoose = require("mongoose");
  */
 
 const GameInvitationSchema = new mongoose.Schema({
-	lobbyId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Lobby",
+	invitation_code: {
+		type: String,
 		required: true,
 	},
 	inviter: {
