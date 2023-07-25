@@ -62,6 +62,15 @@ module.exports = () => {
 				throw error;
 			}
 		},
+		async getPlayers(lobbyId) {
+			try {
+				const lobby = await Lobby.findOne({ _id: lobbyId }, "players");
+
+				return lobby?.players;
+			} catch (error) {
+				throw error;
+			}
+		},
 		async addPlayer(lobbyId, player) {
 			const playerId = player._id;
 			const username = player.username;
@@ -106,6 +115,19 @@ module.exports = () => {
 				);
 
 				return lobby?.themes;
+			} catch (error) {
+				throw error;
+			}
+		},
+		async setVotedTheme(lobbyId, themeId) {
+			try {
+				const lobby = await Lobby.findOneAndUpdate(
+					{ _id: lobbyId },
+					{ $set: { votedTheme: themeId } },
+					{ new: true }
+				);
+
+				return lobby?.votedTheme;
 			} catch (error) {
 				throw error;
 			}
