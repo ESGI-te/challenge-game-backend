@@ -73,8 +73,7 @@ module.exports = (Service, options = {}) => {
         const token = req.headers["authorization"]?.split(" ")[1];
         const user = await securityService.getUserFromToken(token);
         const lastEntries = await Service.findLastEntries(user._id, 3);
-        if (!lastEntries)
-        {
+        if (!lastEntries) {
           res.sendStatus(404);
           return;
         }
