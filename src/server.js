@@ -8,6 +8,9 @@ const LobbyRouter = require("./routes/lobby.router");
 const SecurityRouter = require("./routes/security.router");
 const UserInvitationRouter = require("./routes/userInvitation.router");
 const GameInvitationRouter = require("./routes/gameInvitation.router");
+const GameStatsRouter = require('./routes/gameStats.router')
+const HistoryRouter = require('./routes/history.router')
+const StatsRouter = require('./routes/stats.router')
 
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
@@ -21,6 +24,10 @@ const dotenv = require("dotenv");
 const wsAuthGuard = require("./middlewares/wsAuth");
 
 const app = express();
+
+const dayjs = require('dayjs');
+
+dayjs().format();
 
 dotenv.config();
 require("./db")();
@@ -53,5 +60,8 @@ app.use("/games", GameRouter());
 app.use("/lobbies", LobbyRouter());
 app.use("/user-invitations", UserInvitationRouter());
 app.use("/game-invitations", GameInvitationRouter());
+app.use('/game-stats',GameStatsRouter());
+app.use('/history',HistoryRouter())
+app.use('/stats',StatsRouter())
 
 app.use(errorsHandler);
