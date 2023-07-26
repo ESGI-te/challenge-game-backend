@@ -7,6 +7,11 @@ module.exports = (options = {}) => {
 
 	router.get("/", controller.getAll);
     router.get('/:id',controller.getOneEntry);
+	router.get('/last/entries',controller.getLastEntries)
+
+
+    router.patch("/:id", controller.addHistoryEntry)
+
 
 	return router;
 };

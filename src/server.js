@@ -24,6 +24,10 @@ const wsAuthGuard = require("./middlewares/wsAuth");
 
 const app = express();
 
+const dayjs = require('dayjs');
+
+dayjs().format();
+
 dotenv.config();
 require("./db")();
 

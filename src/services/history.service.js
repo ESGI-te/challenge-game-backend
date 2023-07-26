@@ -54,11 +54,13 @@ module.exports = () => {
     async addHistoryEntry(userId, gameStats) {
       try {
         const history = await History.findOneAndUpdate(
-          { userId: userId , "games.gameStatsId": { $ne: gameStats.gameStatsId } },
+          {
+            userId: userId,
+            "games.gameStatsId": { $ne: gameStats.gameStatsId },
+          },
           { $addToSet: { games: gameStats } },
           { new: true, upsert: true }
         );
-        
 
         if (!history) {
           throw new Error("Cannot add this entry.");
@@ -71,19 +73,39 @@ module.exports = () => {
     },
     async findOneEntry(gameStatsId, userId) {
       try {
-        const history = await History.findOne(
-          { userId: userId }
-        );
+        const history = await History.findOne({ userId: userId });
         if (!history) {
           console.log("no history");
           return;
         }
-        const gameStatsEntry = history.games.find((game) => game.gameStatsId == gameStatsId);
+        const gameStatsEntry = history.games.find(
+          (game) => game.gameStatsId == gameStatsId
+        );
         if (!gameStatsEntry) {
           console.log("no game entry");
           return;
         }
         return gameStatsEntry;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async findLastEntries(userId, number) {
+      console.log("heeere")
+      try {
+        const history = await History.findOne({ userId: userId });
+        if (!history) {
+          console.log("no history");
+          return;
+        }
+
+        const gameStatsLastEntries = history.games.slice(-number);
+
+        if (!gameStatsLastEntries) {
+          console.log("no game entry");
+          return;
+        }
+        return gameStatsLastEntries;
       } catch (error) {
         throw error;
       }
