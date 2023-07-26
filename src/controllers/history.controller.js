@@ -43,26 +43,46 @@ module.exports = (Service, options = {}) => {
           res.sendStatus(404);
           return;
         }
-		const userStats = gameStats.stats.find(player => player.user.id = user._id );
-		if(!userStats){
-			res.sendStatus(404);
-			return;
-		}
-		const historyData = { 
-			score: userStats.score,
-			lives : userStats.lives,
-			rank : userStats.rank,
-			gameStatsId : gameStats.id
-		}
+        const userStats = gameStats.stats.find(
+          (player) => (player.user.id = user._id)
+        );
+        if (!userStats) {
+          res.sendStatus(404);
+          return;
+        }
+        const historyData = {
+          score: userStats.score,
+          lives: userStats.lives,
+          rank: userStats.rank,
+          gameStatsId: gameStats.id,
+          createdAt: gameStats.createdAt,
+        };
 
         const history = await Service.addHistoryEntry(user._id, historyData);
-		if(!history){
-			res.sendStatus(404);
-			return;
-		}
+        if (!history) {
+          res.sendStatus(404);
+          return;
+        }
         res.status(201).json(history);
       } catch (error) {
         console.log(error);
+      }
+    },
+    async getLastEntries(req, res) {
+      try {
+        const token = req.headers["authorization"]?.split(" ")[1];
+        const user = await securityService.getUserFromToken(token);
+        const lastEntries = await Service.findLastEntries(user._id, 3);
+        if (!lastEntries)
+        {
+          res.sendStatus(404);
+          return;
+        }
+
+        res.json(lastEntries);
+      } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
       }
     },
   };
