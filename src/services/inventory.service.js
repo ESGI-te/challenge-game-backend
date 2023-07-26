@@ -1,27 +1,26 @@
 const ValidationError = require("../errors/ValidationError");
-const Produit = require("../models/product.model");
+const Inventory = require("../models/inventory.model");
 
 module.exports = function () {
   return {
     // Méthode pour récupérer tous les produits en fonction des critères de recherche, pagination et tri
     async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
       try {
-        const productList = await Produit.find(criteria)
+        const itemList = await Inventory.find(criteria)
           .limit(itemsPerPage)
           .skip((page - 1) * itemsPerPage)
           .sort(order);
-        return productList;
+        return itemList;
       } catch (error) {
         throw error;
       }
     },
-    
 
     // Méthode pour créer un nouveau produit
     async create(data) {
       try {
-        const produit = await Produit.create(data);
-        return produit;
+        const item = await Inventory.create(data);
+        return item;
       } catch (error) {
         // Si une erreur de validation Mongoose est levée, nous la transformons en une erreur personnalisée
         if (error.name === "ValidationError") {
@@ -34,26 +33,17 @@ module.exports = function () {
     // Méthode pour récupérer un produit par son ID
     async findOne(criteria) {
       try {
-        const produit = await Produit.findOne(criteria);
-        return produit;
-      } catch (error) {
-        throw error;
-      }
-    },
-     // Méthode pour récupérer un produit par son ID
-     async findOneById(id) {
-      try {
-        const produit = await Produit.findById(id);
-        return produit;
+        const item = await Inventory.findById(criteria);
+        return item;
       } catch (error) {
         throw error;
       }
     },
     async replaceOne(id, newData) {
 			try {
-				const deleted = await Produit.deleteOne(id);
-				const product = await Produit.create(newData);
-				return [product, !deleted];
+				const deleted = await Inventory.deleteOne(id);
+				const item = await Inventory.create(newData);
+				return [item, !deleted];
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseValidationError(error);
@@ -62,14 +52,14 @@ module.exports = function () {
 			}
 		},
     // Méthode pour mettre à jour un produit existant
-    async updateOne(id, newData) {
-			const objectId = mongoose.Types.ObjectId(id)
-
+    async updateOne(objectId, newData) {
       try {
-        const produit = await Produit.findByIdAndUpdate(objectId, newData, {
-          new: true, // Retourne le produit mis à jour
-        });
-        return produit;
+        const item = await Inventory.findByIdAndUpdate(
+          objectId,
+          {$set: {item: newData.item}},
+          {new: true}
+        );
+        return item;
       } catch (error) {
         // Si une erreur de validation Mongoose est levée, nous la transformons en une erreur personnalisée
         if (error.name === "ValidationError") {
@@ -82,7 +72,7 @@ module.exports = function () {
     // Méthode pour supprimer un produit par son ID
     async deleteOne(id) {
       try {
-        await Produit.deleteOne(id);
+        await Inventory.findByIdAndDelete(id);
         return true;
       } catch (error) {
         throw error;
