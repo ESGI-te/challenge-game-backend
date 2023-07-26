@@ -64,16 +64,12 @@ module.exports = function () {
       const lives = 3;
 
       try {
-        if (!mongoose.Types.ObjectId.isValid(gameId)) {
-          throw new Error("Invalid gameId");
-        }
-
         const game = await Game.findOneAndUpdate(
-          { _id: gameId, "players._id": { $ne: playerId } },
+          { _id: gameId, "players.id": { $ne: playerId } },
           {
             $addToSet: {
               players: {
-                _id: playerId,
+                id: playerId,
                 username: username,
                 score: score,
                 lives: lives,
@@ -83,6 +79,14 @@ module.exports = function () {
           { new: true }
         );
 
+        return game?.players;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async findOneByCode(code) {
+      try {
+        const game = await Game.findOne({ code });
         return game;
       } catch (error) {
         throw error;
@@ -90,16 +94,39 @@ module.exports = function () {
     },
     async removePlayer(gameId, playerId) {
       try {
-        if (!mongoose.Types.ObjectId.isValid(gameId)) {
-          throw new Error("Invalid gameId");
-        }
-        const updatedGame = await Game.findOneAndUpdate(
+        const game = await Game.findOneAndUpdate(
           { _id: gameId },
-          { $pull: { players: { _id: playerId } } },
+          { $pull: { players: { id: playerId } } },
           { new: true }
         );
+        return game?.players;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async updateCurrentQuestion(gameId, question) {
+      try {
+        const game = await this.findOne(gameId);
+        if (!game) {
+          throw new Error(`Game not found for gameId: ${gameId}`);
+        }
 
-        return updatedGame;
+        game.currentQuestion = question;
+        await game.save();
+
+        return game;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async getCurrentQuestion(gameId) {
+      try {
+        const game = await this.findOne(gameId);
+        if (!game) {
+          throw new Error(`Game not found for gameId: ${gameId}`);
+        }
+
+        return game.currentQuestion;
       } catch (error) {
         throw error;
       }
@@ -115,24 +142,30 @@ module.exports = function () {
     },
     async checkAnswer(gameId, questionId, answer) {
       try {
-        const game = await this.findOne(gameId);
-        return (
-          game.currentQuestion._id === questionId &&
-          game.currentQuestion.answer === answer
-        );
-      } catch (error) {
-        throw error;
-      }
-    },
-    async getQuestionStartTime(gameId) {
-      try {
-        const game = await this.findOne(gameId);
-        return game.currentQuestionStartTime;
-      } catch (error) {
-        throw error;
-      }
-    },
+        let game = await this.findOne(gameId);
+        console.log("this is the game", game);
+        if (!game || !game.currentQuestion) {
+          console.error(
+            `Game or current question not found for gameId: ${gameId}`
+          );
+          return false;
+        }
+        const questionNumberId = Number(questionId);
 
+        const isValid =
+          game.currentQuestion.id === questionNumberId &&
+          game.currentQuestion.answer.trim().toLowerCase() ===
+            answer.trim().toLowerCase();
+        console.log("Answer from client:", answer);
+        console.log("Answer validation result:", isValid);
+
+        game = await this.findOne(gameId);
+
+        return isValid;
+      } catch (error) {
+        throw error;
+      }
+    },
     async getQuestionsForPopularTheme(gameId) {
       try {
         const game = await Game.findById(gameId);
@@ -201,8 +234,8 @@ module.exports = function () {
     async incrementScore(gameId, userId, increment) {
       try {
         return await Game.findOneAndUpdate(
-          { _id: gameId, "players._id": userId },
-          { $inc: { "players.$.score": increment } },
+          { _id: gameId, "players.id": userId },
+          { $inc: { "players.$.score": +1 } },
           { new: true }
         );
       } catch (error) {
@@ -212,7 +245,7 @@ module.exports = function () {
     async decrementLives(gameId, userId) {
       try {
         return await Game.findOneAndUpdate(
-          { _id: gameId, "players._id": userId },
+          { _id: gameId, "players.id": userId },
           { $inc: { "players.$.lives": -1 } },
           { new: true }
         );
@@ -222,20 +255,27 @@ module.exports = function () {
     },
     async getLives(gameId, userId) {
       try {
-        const game = await Game.findOne({ _id: gameId, "players._id": userId });
-        const player = game.players.find(
-          (player) => player._id.toString() === userId
-        );
+        const game = await Game.findOne({ _id: gameId, "players.id": userId });
+
+        const player = game.players.find((player) => {
+          console.log(player.id.toString(), userId.toString());
+          return player.id.toString() === userId.toString();
+        });
+
+        if (!player) {
+          throw new Error(`Player not found for userId: ${userId}`);
+        }
         return player.lives;
       } catch (error) {
         throw error;
       }
     },
     async eliminatePlayer(gameId, userId) {
+      console.log(gameId);
       try {
         return await Game.findOneAndUpdate(
           { _id: gameId },
-          { $pull: { players: { _id: userId } } },
+          { $pull: { players: { id: userId } } },
           { new: true }
         );
       } catch (error) {
@@ -245,8 +285,9 @@ module.exports = function () {
     async getWinner(gameId) {
       try {
         const game = await this.findOne(gameId);
-        if (!game || !game.players || game.players.length === 0) {
-          return null;
+        const players = await gameService.getAlivePlayers(game._id);
+        if (players.length === 0) {
+          gameStatuses.set(game._id, false);
         }
         const sortedPlayers = game.players.sort((a, b) => b.score - a.score);
         const highestScore = sortedPlayers[0].score;
@@ -254,6 +295,40 @@ module.exports = function () {
           (player) => player.score === highestScore
         );
         return winners;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async setCurrentQuestion(gameId, question) {
+      try {
+        const game = await Game.findOneAndUpdate(
+          { _id: gameId },
+          { currentQuestion: question, currentQuestionStartTime: new Date() },
+          { new: true }
+        );
+
+        if (!game) {
+          throw new Error(`Game not found`);
+        }
+
+        return game?.currentQuestion;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async startGame(gameId) {
+      try {
+        const game = await Game.findByIdAndUpdate(
+          gameId,
+          { isStarted: true },
+          { new: true }
+        );
+
+        if (!game) {
+          throw new Error(`Game not found`);
+        }
+
+        return game.isStarted;
       } catch (error) {
         throw error;
       }
