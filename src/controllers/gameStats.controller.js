@@ -37,5 +37,6 @@ module.exports = (Service, options = {}) => {
 				res.sendStatus(404);
 			} else res.sendStatus(204);
 		},
+	
 	};
 };
