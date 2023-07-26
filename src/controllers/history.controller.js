@@ -84,5 +84,21 @@ module.exports = (Service, options = {}) => {
         res.sendStatus(500);
       }
     },
+    async getAverageScore(req,res){
+      try {
+        const token = req.headers["authorization"]?.split(" ")[1];
+        const user = await securityService.getUserFromToken(token);
+        const AvgScore = await Service.getStatsWithAverage(user._id, 30);
+        if (!AvgScore)
+        {
+          res.sendStatus(404);
+          return;
+        }
+        res.json(AvgScore);
+      } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+      }
+		}
   };
 };
