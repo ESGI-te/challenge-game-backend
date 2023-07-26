@@ -40,8 +40,7 @@ module.exports = (options = {}) => {
       const getsession = await stripe.checkout.sessions.listLineItems(sessionFind.id,{ limit: 5 })
           .then((lineItems) => { return lineItems})
           .catch((error)    => { throw(error)    });
-      console.log("get : ", sessionFind);
-
+      res.json(getsession.data)
 
     }
   };
