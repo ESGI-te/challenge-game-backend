@@ -9,6 +9,5 @@ module.exports = (options = {}) => {
 
 	router.get("/:id", controller.getOne);
 
-
 	return router;
 };
