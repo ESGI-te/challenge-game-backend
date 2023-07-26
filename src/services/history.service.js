@@ -1,3 +1,4 @@
+const dayjs = require("dayjs");
 const ValidationError = require("../errors/ValidationError");
 const History = require("../models/history.model");
 
@@ -91,7 +92,6 @@ module.exports = () => {
       }
     },
     async findLastEntries(userId, number) {
-      console.log("heeere")
       try {
         const history = await History.findOne({ userId: userId });
         if (!history) {
@@ -106,6 +106,51 @@ module.exports = () => {
           return;
         }
         return gameStatsLastEntries;
+      } catch (error) {
+        throw error;
+      }
+    },
+    async getStatsWithAverage(userId, days) {
+      try {
+        const history = await History.findOne({ userId: userId });
+        if (!history) {
+          console.log("no history");
+          return;
+        }
+
+        const gameStatsEntries = history.games.filter(
+          (game) =>
+            dayjs().diff(dayjs(game.createdAt).format("YYYY-MM-DD"), "day") <=
+            days
+        );
+        if (!gameStatsEntries) {
+          console.log("no game entry");
+          return;
+        }
+        const numberOfGames = gameStatsEntries.length;
+        let totaleScore = 0;
+        let totalRank = 0;
+        let totalRemainedLives = 0;
+
+        gameStatsEntries.forEach((gameStat) => {
+          totaleScore += gameStat.score;
+          totalRank += gameStat.rank;
+          totalRemainedLives += gameStat.lives;
+        });
+
+        const averageScore = totaleScore / numberOfGames;
+        const averageRank = totalRank / numberOfGames;
+        const averageLivesRemained = totalRemainedLives / numberOfGames;
+
+        const returnObject = {
+          games: gameStatsEntries,
+          stats: {
+            AverageScore: averageScore,
+            AverageRank: averageRank,
+            AverageLivesRemained: averageLivesRemained,
+          },
+        };
+        return returnObject;
       } catch (error) {
         throw error;
       }
