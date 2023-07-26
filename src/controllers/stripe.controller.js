@@ -34,5 +34,15 @@ module.exports = (options = {}) => {
         res.status(500).json({ message: "Internal server error" });
       }
     },
+    async getSucces(req, res){
+      const sessions = await stripe.checkout.sessions.list({limit: 3});
+      const sessionFind = sessions.data.find((session) => session.id === req.query.session_id)
+      const getsession = await stripe.checkout.sessions.listLineItems(sessionFind.id,{ limit: 5 })
+          .then((lineItems) => { return lineItems})
+          .catch((error)    => { throw(error)    });
+      console.log("get : ", sessionFind);
+
+
+    }
   };
 };

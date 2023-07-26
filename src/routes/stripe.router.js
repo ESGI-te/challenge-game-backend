@@ -5,6 +5,7 @@ module.exports = (options = {}) => {
 	const controller = StripeController();
 
 	router.post("/checkout", controller.createCheckoutSession);
+	router.get("/checkout/:id", controller.getSucces); // utiliser tripe	
 
 	return router;
 };
