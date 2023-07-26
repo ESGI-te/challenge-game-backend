@@ -10,9 +10,10 @@ const ShopRouter = require("./routes/shop.router");
 const InventoryRouter = require("./routes/inventory.router");
 const UserInvitationRouter = require("./routes/userInvitation.router");
 const GameInvitationRouter = require("./routes/gameInvitation.router");
-const GameStatsRouter = require("./routes/gameStats.router");
-const HistoryRouter = require("./routes/history.router");
-const StatsRouter = require("./routes/stats.router");
+const GameStatsRouter = require('./routes/gameStats.router')
+const HistoryRouter = require('./routes/history.router')
+const StatsRouter = require('./routes/stats.router')
+const StripeRouter = require("./routes/stripe.router.js");
 
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");

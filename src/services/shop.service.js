@@ -15,8 +15,6 @@ module.exports = function () {
         throw error;
       }
     },
-    
-
     // Méthode pour créer un nouveau produit
     async create(data) {
       try {
@@ -30,7 +28,6 @@ module.exports = function () {
         throw error;
       }
     },
-
     // Méthode pour récupérer un produit par son ID
     async findOne(criteria) {
       try {
@@ -78,7 +75,6 @@ module.exports = function () {
         throw error;
       }
     },
-
     // Méthode pour supprimer un produit par son ID
     async deleteOne(id) {
       try {

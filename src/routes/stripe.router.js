@@ -3,9 +3,7 @@ module.exports = (options = {}) => {
 	const router = Router();
 	const StripeController = require("../controllers/stripe.controller");
 	const controller = StripeController();
-
 	router.post("/checkout", controller.createCheckoutSession);
-	router.get("/checkout/:id", controller.getSucces); // utiliser tripe	
-
+	router.get("/checkout/:id", controller.getSucces);
 	return router;
 };

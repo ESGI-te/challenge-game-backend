@@ -15,29 +15,24 @@ module.exports = function () {
         throw error;
       }
     },
-
-    // Méthode pour créer un nouveau produit
+    // Méthode pour créer un nouveau inventaire
     async create(data) {
       try {
         const item = await Inventory.create(data);
         return item;
       } catch (error) {
-        // Si une erreur de validation Mongoose est levée, nous la transformons en une erreur personnalisée
         if (error.name === "ValidationError") {
           throw ValidationError.createFromMongooseValidationError(error);
         }
         throw error;
       }
     },
-
-    // Méthode pour récupérer un produit par son ID
+    // Méthode pour récupérer un inventaire par son ID
     async findOne(criteria) {
       try {
-        const item = await Inventory.findById(criteria);
-        return item;
-      } catch (error) {
-        throw error;
-      }
+        const inventaire = await Inventory.findById(criteria);
+        return inventaire;
+      } catch (error) {throw error;}
     },
     async replaceOne(id, newData) {
 			try {
@@ -51,7 +46,7 @@ module.exports = function () {
 				throw error;
 			}
 		},
-    // Méthode pour mettre à jour un produit existant
+    // Méthode pour mettre à jour un inventaire existant
     async updateOne(objectId, newData) {
       try {
         const item = await Inventory.findByIdAndUpdate(
@@ -61,15 +56,13 @@ module.exports = function () {
         );
         return item;
       } catch (error) {
-        // Si une erreur de validation Mongoose est levée, nous la transformons en une erreur personnalisée
         if (error.name === "ValidationError") {
           throw ValidationError.createFromMongooseValidationError(error);
         }
         throw error;
       }
     },
-
-    // Méthode pour supprimer un produit par son ID
+    // Méthode pour supprimer un inventaire par son ID
     async deleteOne(id) {
       try {
         await Inventory.findByIdAndDelete(id);
