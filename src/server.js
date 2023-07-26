@@ -10,6 +10,7 @@ const UserInvitationRouter = require("./routes/userInvitation.router");
 const GameInvitationRouter = require("./routes/gameInvitation.router");
 const GameStatsRouter = require('./routes/gameStats.router')
 const HistoryRouter = require('./routes/history.router')
+const StatsRouter = require('./routes/stats.router')
 
 const GameSocket = require("./websockets/game.ws");
 const LobbySocket = require("./websockets/lobby.ws");
@@ -61,5 +62,6 @@ app.use("/user-invitations", UserInvitationRouter());
 app.use("/game-invitations", GameInvitationRouter());
 app.use('/game-stats',GameStatsRouter());
 app.use('/history',HistoryRouter())
+app.use('/stats',StatsRouter())
 
 app.use(errorsHandler);
