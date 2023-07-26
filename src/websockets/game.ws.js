@@ -9,6 +9,11 @@ module.exports = function (io) {
   const namespace = io.of(WS_GAME_NAMESPACE);
 
   const gameStatuses = new Map();
+  const remainingTimes = new Map();
+
+  const getRemainingTime = (gameId) => {
+    return remainingTimes.get(gameId);
+  };
 
   const startGame = async (game) => {
     const allQuizzes = [
@@ -342,6 +347,10 @@ module.exports = function (io) {
           namespace.to(game._id).emit("question", currentQuestion);
           questionIndex += 1;
           console.log(currentQuestion);
+          remainingTimes.set(
+            game._id,
+            remainingTimes.get(game._id) - game.settings.questionTime
+          );
         } else {
           clearInterval(interval);
           console.log("tous les question du quizz sont passé");
@@ -356,11 +365,18 @@ module.exports = function (io) {
           ]);
           namespace.to(game._id).emit("game_over", winner);
         }
+        namespace
+          .to(game._id)
+          .emit("remaining_time", getRemainingTime(game._id));
       } catch (err) {
         console.error(err);
         clearInterval(interval);
       }
     }, game.settings.questionTime * 1000);
+    remainingTimes.set(
+      game._id,
+      game.settings.questionTime * allQuizzes.length
+    );
   };
 
   const handleConnection = async (socket) => {
@@ -387,13 +403,7 @@ module.exports = function (io) {
     if (game.isStarted) {
       const currentQuestion = await gameService.getCurrentQuestion(game._id);
       socket.emit("question", currentQuestion);
-    } else {
-      await gameService.startGame(game._id);
-      startGame(game);
-    }
-    if (!game.isStarted) {
-      await gameService.startGame(game._id);
-      startGame(game);
+      socket.emit("remaining_time", getRemainingTime(game._id));
     }
 
     socket.on("answer", async ({ questionId, answer }) => {
@@ -421,8 +431,19 @@ module.exports = function (io) {
       } catch (error) {
         console.error("Error while processing answer:", error);
       }
-      if (players.length === 0) {
+      if (game.players.length === 0) {
         gameStatuses.set(game._id, false);
+      }
+    });
+
+    socket.on("reconnect", async () => {
+      if (!game.isStarted) {
+        await gameService.startGame(game._id);
+        startGame(game);
+      } else {
+        const currentQuestion = await gameService.getCurrentQuestion(game._id);
+        socket.emit("question", currentQuestion);
+        socket.emit("remaining_time", getRemainingTime(game._id));
       }
     });
 
@@ -434,6 +455,10 @@ module.exports = function (io) {
         description: `${user.username} just left the game`,
       });
       namespace.to(game._id).emit("players", players);
+      if (game.isStarted) return;
+      if (players.length === 0) {
+        gameStatuses.set(game._id, false);
+      }
     });
   };
 
