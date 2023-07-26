@@ -143,7 +143,6 @@ module.exports = () => {
         const averageLivesRemained = totalRemainedLives / numberOfGames;
 
         const returnObject = {
-          games: gameStatsEntries,
           stats: {
             AverageScore: averageScore,
             AverageRank: averageRank,
