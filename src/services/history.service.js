@@ -76,7 +76,6 @@ module.exports = () => {
       try {
         const history = await History.findOne({ userId: userId });
         if (!history) {
-          console.log("no history");
           return;
         }
         const gameStatsEntry = history.games.find(
@@ -95,7 +94,6 @@ module.exports = () => {
       try {
         const history = await History.findOne({ userId: userId });
         if (!history) {
-          console.log("no history");
           return;
         }
 
@@ -114,7 +112,6 @@ module.exports = () => {
       try {
         const history = await History.findOne({ userId: userId });
         if (!history) {
-          console.log("no history");
           return;
         }
 
