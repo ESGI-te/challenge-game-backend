@@ -43,6 +43,15 @@ const LobbySchema = new mongoose.Schema({
 					type: Number,
 					default: 30,
 				},
+				lives: {
+					type: Number,
+					default: 3,
+					required: true,
+				},
+				difficulty: {
+					type: Number,
+					default: 1,
+				},
 			},
 			{ _id: false }
 		),
