@@ -3,6 +3,7 @@ const User = require("../models/user.model");
 
 module.exports = () => {
 	return {
+		/** User */
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
 			try {
 				const userList = await User.find(criteria)
@@ -75,6 +76,7 @@ module.exports = () => {
 				throw error;
 			}
 		},
+		/** Friend */
 		async addFriend(id, friendId) {
 			try {
 				const result = await User.updateOne(
@@ -113,6 +115,6 @@ module.exports = () => {
 			} catch (error) {
 				throw error;
 			}
-		},
+		}
 	};
 };
