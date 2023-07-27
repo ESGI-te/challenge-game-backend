@@ -17,8 +17,6 @@ const UserSchema = new mongoose.Schema({
 	},
 	username: { type: String, required: true, unique: true },
 	password: { type: String, required: true },
-	imageUrl: {type: String},
-	inventoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Inventory", required: true },
 	roles: {
 		type: [String],
 		required: true,

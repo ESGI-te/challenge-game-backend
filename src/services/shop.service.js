@@ -46,6 +46,15 @@ module.exports = function () {
         throw error;
       }
     },
+         // Méthode pour récupérer un produit par son Nom
+         async findOneByName(criteria) {
+          try {
+            const produit = await Produit.findOne({name: criteria.name});
+            return produit;
+          } catch (error) {
+            throw error;
+          }
+        },
     async replaceOne(id, newData) {
 			try {
 				const deleted = await Produit.deleteOne(id);

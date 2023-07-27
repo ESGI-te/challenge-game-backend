@@ -1,6 +1,11 @@
+const InventoryService = require('../services/inventory.service');
+const SecurityService = require('../services/security.service');
+const ProductService = require('../services/shop.service');
 module.exports = (options = {}) => {
   const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
-
+  const inventoryService = InventoryService();
+  const securityService = SecurityService();
+  const productService = ProductService();
   return {
     async createCheckoutSession(req, res) {
       try {
@@ -34,7 +39,7 @@ module.exports = (options = {}) => {
         res.status(500).json({ message: "Internal server error" });
       }
     },
-    async getSucces(req, res){
+    async getSucces(req, res){ // 2 s / post updateInventory
       //Récupération des 3 derniers achats
       const sessions = await stripe.checkout.sessions.list({limit: 3});
       // Récupération de la session réussi parmis les 3 derniers
@@ -43,6 +48,19 @@ module.exports = (options = {}) => {
       const getsession = await stripe.checkout.sessions.listLineItems(sessionFind.id,{ limit: 5 })
           .then((lineItems) => { return lineItems})
           .catch((error)    => { throw(error)    });
+
+      const token = req.headers["authorization"]?.split(" ")[1];
+      const user = await securityService.getUserFromToken(token);
+      const userInventory = await inventoryService.findOneByUser({userId: user._id.toString()})
+      const productInventory = await productService.findOneByName({name: getsession.data[0].description});
+      if(!userInventory) {
+        const item = [productInventory._id.toString()];
+        const userId = user._id.toString();
+        await inventoryService.create({item, userId });
+      } else {
+       userInventory.item.push(productInventory._id.toString());
+       await inventoryService.updateOne(userInventory._id.toString(),  userInventory);
+      }
       res.json(getsession.data)
 
     }

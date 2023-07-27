@@ -34,6 +34,14 @@ module.exports = function () {
         return inventaire;
       } catch (error) {throw error;}
     },
+    async findOneByUser(criteria) {
+      try {
+        const inventaire = await Inventory.findOne({userId: criteria.userId});
+        return inventaire;
+      } catch (error) {
+        // throw error;
+      }
+    },
     async replaceOne(id, newData) {
 			try {
 				const deleted = await Inventory.deleteOne(id);
