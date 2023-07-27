@@ -29,15 +29,12 @@ module.exports = (Service, options = {}) => {
 				const token = authHeader && authHeader.split(" ")[1];
 				const user = await securityService.getUserFromToken(token);
 				const uid = generateUID();
-				const themes = await quizzThemeService.findAll({}, { itemsPerPage: 2 });
+				const { themes, ...settings } = req.settings;
 				const data = {
-					settings: req.body.settings,
+					settings,
 					owner: user._id,
 					invitation_code: uid,
-					themes: themes.map((theme) => ({
-						name: theme.name,
-						id: theme._id,
-					})),
+					themes
 				};
 				const lobby = await Service.create(data);
 				res.status(201).json({ code: lobby.invitation_code });
