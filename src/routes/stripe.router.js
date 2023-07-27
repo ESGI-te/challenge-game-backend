@@ -4,6 +4,6 @@ module.exports = (options = {}) => {
 	const StripeController = require("../controllers/stripe.controller");
 	const controller = StripeController();
 	router.post("/checkout", controller.createCheckoutSession);
-	router.get("/checkout/:id", controller.getSucces);
+	router.post("/checkout/:id", controller.updateInventory);
 	return router;
 };

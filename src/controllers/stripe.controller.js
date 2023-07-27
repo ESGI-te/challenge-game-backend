@@ -39,12 +39,13 @@ module.exports = (options = {}) => {
         res.status(500).json({ message: "Internal server error" });
       }
     },
-    async getSucces(req, res){ // 2 s / post updateInventory
+    async updateInventory(req, res){ 
       //Récupération des 3 derniers achats
       const sessions = await stripe.checkout.sessions.list({limit: 3});
       // Récupération de la session réussi parmis les 3 derniers
       const sessionFind = sessions.data.find((session) => session.id === req.query.session_id)
       // Récupération du produit vendu
+      console.log("aaaaaaaa : ", req);
       const getsession = await stripe.checkout.sessions.listLineItems(sessionFind.id,{ limit: 5 })
           .then((lineItems) => { return lineItems})
           .catch((error)    => { throw(error)    });
