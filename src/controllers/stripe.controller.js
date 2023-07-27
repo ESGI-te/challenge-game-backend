@@ -45,7 +45,6 @@ module.exports = (options = {}) => {
       // Récupération de la session réussi parmis les 3 derniers
       const sessionFind = sessions.data.find((session) => session.id === req.query.session_id)
       // Récupération du produit vendu
-      console.log("aaaaaaaa : ", req);
       const getsession = await stripe.checkout.sessions.listLineItems(sessionFind.id,{ limit: 5 })
           .then((lineItems) => { return lineItems})
           .catch((error)    => { throw(error)    });
