@@ -10,9 +10,9 @@ const ShopRouter = require("./routes/shop.router");
 const InventoryRouter = require("./routes/inventory.router");
 const UserInvitationRouter = require("./routes/userInvitation.router");
 const GameInvitationRouter = require("./routes/gameInvitation.router");
-const GameStatsRouter = require('./routes/gameStats.router')
-const HistoryRouter = require('./routes/history.router')
-const StatsRouter = require('./routes/stats.router')
+const GameStatsRouter = require("./routes/gameStats.router");
+const HistoryRouter = require("./routes/history.router");
+const StatsRouter = require("./routes/stats.router");
 const StripeRouter = require("./routes/stripe.router.js");
 
 const GameSocket = require("./websockets/game.ws");
@@ -35,10 +35,10 @@ dayjs().format();
 dotenv.config();
 require("./db")();
 
-app.use(cors({origin : '*' }));
+app.use(cors({ origin: "*" }));
 
 const server = app.listen(3000, () => {
-  console.log("App listening on port 3000!");
+	console.log("App listening on port 3000!");
 });
 
 const io = require("./socket")(server);
@@ -69,5 +69,9 @@ app.use("/game-invitations", GameInvitationRouter());
 app.use("/game-stats", GameStatsRouter());
 app.use("/history", HistoryRouter());
 app.use("/stats", StatsRouter());
+
+app.use("/", (req, res) => {
+	res.send("Hello World!");
+});
 
 app.use(errorsHandler);
