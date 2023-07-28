@@ -50,7 +50,7 @@ module.exports = (Service, options = {}) => {
 					return res.status(404).json({ message: "User not found" });
 				}
 
-				const isFriend = recipientUser.friends.includes(new ObjectId(user._id));
+				const isFriend = recipientUser.friends.includes(user._id);
 
 				if (isFriend) {
 					return res
