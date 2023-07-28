@@ -45,10 +45,11 @@ module.exports = (io) => {
 			const recipientSocket = connectedUsers[recipient.id];
 
 			if (!recipientSocket) return;
-			const { invitation_code, inviter } = change.fullDocument;
+			const { invitation_code, inviter, _id } = change.fullDocument;
 			const invitation = {
 				invitation_code,
 				inviter,
+				id: _id,
 			};
 			recipientSocket.emit("receive_game_invitation", invitation);
 		} catch (error) {

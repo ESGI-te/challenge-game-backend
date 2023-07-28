@@ -100,7 +100,7 @@ module.exports = (Service, options = {}) => {
 
 				const user = await securityService.getUserFromToken(token);
 				const invitation = await Service.findOneById(req.body.id);
-				const { lobbyId } = invitation;
+				const { invitation_code } = invitation;
 
 				if (!invitation) {
 					return res.status(404).json({ message: "Invitation not found" });
@@ -112,7 +112,7 @@ module.exports = (Service, options = {}) => {
 
 				await Service.deleteOne(req.body.id);
 
-				res.status(200).json({ lobbyId });
+				res.status(200).json({ invitation_code });
 			} catch (error) {
 				next(error);
 			}
