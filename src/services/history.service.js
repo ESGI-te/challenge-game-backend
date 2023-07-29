@@ -9,7 +9,8 @@ module.exports = () => {
         const historyList = await History.find(criteria)
           .limit(itemsPerPage)
           .skip((page - 1) * itemsPerPage)
-          .sort(order);
+          .sort(order)
+          .exec();
         return historyList;
       } catch (error) {
         throw error;
