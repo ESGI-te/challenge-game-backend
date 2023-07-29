@@ -9,7 +9,8 @@ module.exports = () => {
         const gameStat = await Stats.find(criteria)
           .limit(itemsPerPage)
           .skip((page - 1) * itemsPerPage)
-          .sort(order);
+          .sort(order)
+          .exec();
         return gameStat;
       } catch (error) {
         throw error;

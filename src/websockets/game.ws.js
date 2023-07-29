@@ -1,29 +1,36 @@
 const SecurityService = require("../services/security.service");
 const GameService = require("../services/game.service");
+const GameStatsService = require("../services/gameStats.service");
 const { WS_GAME_NAMESPACE } = require("../utils/constants");
+const QUESTION_TIME_LIMIT = 15;
 
-module.exports = function (io) {
-  const gameService = GameService();
-  const securityService = SecurityService();
+class GameServer {
+  constructor(io) {
+    this.io = io;
+    this.gameStatsService = GameStatsService();
+    this.gameService = GameService();
+    this.securityService = SecurityService();
+    this.namespace = this.io.of(WS_GAME_NAMESPACE);
+    this.gameStatuses = new Map();
+    this.remainingTimes = new Map();
+    this.activeConnections = new Map();
+    this.namespace.on("connection", this.handleConnection.bind(this));
+  }
 
-  const namespace = io.of(WS_GAME_NAMESPACE);
-
-  const gameStatuses = new Map();
-  const remainingTimes = new Map();
-
-  const getRemainingTime = (gameId) => {
-    const remaining = remainingTimes.get(gameId);
+  getRemainingTime(gameId) {
+    const remaining = this.remainingTimes.get(gameId);
     console.log(`Getting remaining time for game ${gameId}:`, remaining);
     return remaining;
-  };
+  }
 
-  const decrementRemainingTime = (gameId) => {
-    if (remainingTimes.has(gameId)) {
-      remainingTimes.set(gameId, remainingTimes.get(gameId) - 1);
+  decrementRemainingTime(gameId) {
+    if (this.remainingTimes.has(gameId)) {
+      this.remainingTimes.set(gameId, this.remainingTimes.get(gameId) - 1);
     }
-  };
+  }
 
-  const startGame = async (game) => {
+  async startGame(game) {
+    ///test plus rapide
     const allQuizzes = [
       {
         id: 1,
@@ -66,413 +73,234 @@ module.exports = function (io) {
         anecdote:
           "Didier Barbelivien, Michel Fugain et Danyel Gérard ont fait partie de la liste des artistes qui ont composé pour Hervé Vilard.",
       },
-      {
-        id: 5,
-        question:
-          "Quel peintre, né en 1844, est également appelé par beaucoup le Douanier ?",
-        propositions: [
-          "Henri Rousseau",
-          "Salvador Dali",
-          "Pablo Picasso",
-          "Edgar Degas",
-        ],
-        answer: "Henri Rousseau",
-        anecdote:
-          "Le premier portrait connu réalisé par le peintre Henri Rousseau semble être celui de sa première femme.",
-      },
-      {
-        id: 6,
-        question:
-          "Quel personnage imaginaire fut popularisé par le roman de E.R. Burroughs et par le cinéma ?",
-        propositions: ["Nessie", "Le Yéti", "King-Kong", "Tarzan"],
-        answer: "Tarzan",
-        anecdote:
-          "Edgar Rice Burroughs a inspiré bon nombre d'auteurs de science-fiction et de fantastique ainsi que de nombreux réalisateurs.",
-      },
-      {
-        id: 7,
-        question:
-          "Quelle est la seule valeur à la roulette à porter la couleur verte ?",
-        propositions: ["Treize", "Cinquante", "Zéro", "Quarante"],
-        answer: "Zéro",
-        anecdote:
-          "À la roulette, lorsque le croupier donne la main, chaque joueur mise sur un numéro qu'il espère être tiré pour remporter la mise.",
-      },
-      {
-        id: 8,
-        question:
-          "Quelle est la race du chien de Columbo, l'inspecteur obstiné et perspicace de la télé ?",
-        propositions: ["Barbet", "Bichon", "Beagle", "Basset"],
-        answer: "Basset",
-        anecdote:
-          "Interrompue en 1978, la série télévisée « Columbo » a été ressuscitée en 1989, toujours avec Peter Falk dans le rôle principal.",
-      },
-      {
-        id: 9,
-        question:
-          "Quelle est la plus petite unité de mémoire utilisable sur un ordinateur ?",
-        propositions: ["Byte", "Giga", "Bit", "Méga"],
-        answer: "Bit",
-        anecdote:
-          "La mémoire est un composant matériel essentiel de nombreux appareils électroniques, présent dans tousles ordinateurs.",
-      },
-      {
-        id: 10,
-        question:
-          "Dans le langage familier, comment appelle-t-on la dent du petit enfant ?",
-        propositions: ["Marmotte", "Bouillotte", "Quenotte", "Menotte"],
-        answer: "Quenotte",
-        anecdote:
-          "Il est important de bien se brosser les dents de manière régulière si l'on veut éviter la proliférationde caries dans la bouche.",
-      },
-      {
-        id: 11,
-        question:
-          "Où se situe la célèbre base navale américaine de Guantanamo, réputée pour sa sévérité ?",
-        propositions: ["Mexique", "Cuba", "Paraguay", "Hawaii"],
-        answer: "Cuba",
-        anecdote:
-          "La base de Guantanamo, très hautement sécurisée, détient des personnes et des individus qualifiés decombattants hors-la-loi.",
-      },
-      {
-        id: 12,
-        question: "Quelle est la spécialité du sportif tunisien Oussama Mellouli ?",
-        propositions: ["Football", "Natation", "Marathon", "Boxe"],
-        answer: "Natation",
-        anecdote:
-          "Oussama Mellouli est le premier champion olympique tunisien du milieu de la natation professionnelle àavoir remporté ce titre.",
-      },
-      {
-        id: 13,
-        question:
-          "Quel acteur français a remporté le premier rôle dans le film « Le Guépard » ?",
-        propositions: ["Jean Reno", "Claude Brasseur", "Jean Gabin", "Alain Delon"],
-        answer: "Alain Delon",
-        anecdote:
-          "Le film « Le Guépard », mettant en scène l'acteur Alain Delon, décrit la chute de l'aristocratieitalienne, dont la scène du bal donne la clé.",
-      },
-      {
-        id: 14,
-        question:
-          "Qui était le compagnon de Paul de Tarse, désigné aussi sous le nom de saint Paul ?",
-        propositions: ["Saint Matthieu", "Saint Marc", "Saint Luc", "Saint Jean"],
-        answer: "Saint Luc",
-        anecdote:
-          "Sans faire partie des Douze, Saint Paul a toutefois marqué le christianisme par son interprétation del'enseignement de Jésus.",
-      },
-      {
-        id: 15,
-        question:
-          "Quel titre de noblesse est immédiatement inférieur à celui de comte ?",
-        propositions: ["Archiduc", "Duc", "Marquis", "Vicomte"],
-        answer: "Vicomte",
-        anecdote:
-          "Vicomte est une distinction héréditaire que beaucoup revendiquent mais à laquelle ne sont attachésaucuns pouvoirs.",
-      },
-      {
-        id: 16,
-        question:
-          "Quelle est la capitale de la Nouvelle-Zélande, au sud-ouest de l'océan Pacifique ?",
-        propositions: ["Auckland", "Wellington", "Dublin", "Sydney"],
-        answer: "Wellington",
-        anecdote:
-          "Troisième ville la plus peuplée du pays, Wellington fait partie des douze meilleures villes danslaquelle vivre.",
-      },
-      {
-        id: 17,
-        question:
-          "Quel film a réuni sur les écrans Isabelle Adjani et Sharon Stone ?",
-        propositions: [
-          "Les sorcières",
-          "Les ensorceleuses",
-          "Diabolique",
-          "Ange et Démon",
-        ],
-        answer: "Diabolique",
-        anecdote:
-          "Dans le film « Diabolique », la femme et la maîtresse d'un professeur s'associent pour planifier sonassassinat.",
-      },
-      {
-        id: 18,
-        question: "Comment est également appelée la Transat Jacques Vabre ?",
-        propositions: [
-          "Vendée Globe",
-          "Route du rhum",
-          "Route du café",
-          "Trophée du rhum",
-        ],
-        answer: "Route du café",
-        anecdote:
-          "La Transat Jacques Vabre ou route du café, course transatlantique en double, se déroule tous les deuxans depuis 1993.",
-      },
-      {
-        id: 19,
-        question: "Quel oiseau vivant dans l'hémisphère nord nage le plus vite ?",
-        propositions: ["Pingouin", "Bécassine", "Pie", "Martinet"],
-        answer: "Pingouin",
-        anecdote:
-          "Par abus de langage, le pingouin est souvent confondu avec le manchot, de par sa ressemblance avec leGrand Pingouin.",
-      },
-      {
-        id: 20,
-        question:
-          "Quelle est la plus grosse des planètes de notre Système solaire ?",
-        propositions: ["Neptune", "Saturne", "Jupiter", "Uranus"],
-        answer: "Jupiter",
-        anecdote:
-          "Jupiter est une planète géante gazeuse, la plus grosse planète du Système solaire.",
-      },
-      {
-        id: 21,
-        question:
-          "Apparu il y a 450 millions d'années, à quelle classe animale le scorpion appartient-il ?",
-        propositions: ["Arachnides", "Reptiles", "Mammifères", "Insectes"],
-        answer: "Arachnides",
-        anecdote:
-          "Les scorpions se distinguent des araignées par un aiguillon venimeux situé au bout de leur abdomenpouvant être mortel pour l'homme.",
-      },
-      {
-        id: 22,
-        question:
-          "Quel frère d'une actrice prénommée Mary a réalisé le film « La fièvre du samedi soir » ?",
-        propositions: [
-          "John Payne",
-          "John Remezick",
-          "John Travolta",
-          "John Badham",
-        ],
-        answer: "John Badham",
-        anecdote:
-          "« La fièvre du samedi soir », réalisé par John Badham, fut un des principaux vecteurs de diffusion de lamusique et de la mode disco.",
-      },
-      {
-        id: 23,
-        question: "Au Moyen Âge, comment appelait-on un village fortifié ?",
-        propositions: ["Tour", "Bastide", "Rempart", "Château fort"],
-        answer: "Bastide",
-        anecdote:
-          "De nos jours, les bastides les plus connues sont celles de Monflanquin, Monpazier, Grenade ou bienencore Libourne.",
-      },
-      {
-        id: 24,
-        question: "Quelle ville du Kent est célèbre pour sa source miraculeuse ?",
-        propositions: ["Dartford", "Tunbridge Wells", "Gillingham", "Ramsgate"],
-        answer: "Tunbridge Wells",
-        anecdote:
-          "Comme la reine Victoria, de nombreuses personnes célèbres sont venues en cure à Tunbridge Wells profiterde sa source miraculeuse.",
-      },
-      {
-        id: 25,
-        question:
-          "Quel apéritif à base de vin est aromatisé avec des plantes amères et toniques ?",
-        propositions: ["Vermouth", "Gentiane", "Kokebok", "Piccolo"],
-        answer: "Vermouth",
-        anecdote:
-          "Dans une classification du plus sec au plus doux, on trouve le vermouth sec, le blanc, le rosé et lerouge.",
-      },
-      {
-        id: 26,
-        question:
-          "À quel écrivain, membre de l'Académie française, doit-on le roman intitulé « Le sagouin » ?",
-        propositions: ["Giono", "Barjavel", "Mauriac", "Camus"],
-        answer: "Mauriac",
-        anecdote:
-          "Dans le roman « Le sagouin », écrit en quatre parties, on peut supposer que l'action se passe vers1920.",
-      },
-      {
-        id: 27,
-        question:
-          "Quel président Français trouva la mort dans une situation inhabituelle ?",
-        propositions: [
-          "René Coty",
-          "Félix Faure",
-          "Georges Pompidou",
-          "Raymond Poincaré",
-        ],
-        answer: "Félix Faure",
-        anecdote:
-          "Suite à ce décès inopiné, on a souvent dit de Félix Faure qu'il était un président plus célèbre par samort que par sa vie.",
-      },
-      {
-        id: 28,
-        question:
-          "Comment appelle-t-on le versant de la montagne non situé au soleil ?",
-        propositions: ["Ressac", "Étant", "Adret", "Ubac"],
-        answer: "Ubac",
-        anecdote:
-          "Dans l'hémisphère Nord, l'ubac est généralement la face Nord d'une montagne alors que l'adret enreprésente la face Sud.",
-      },
-      {
-        id: 29,
-        question:
-          "Quel oiseau palmipède a pour particularité de construire un nid flottant ?",
-        propositions: ["Grèle", "Grèbe", "Grène", "Grève"],
-        answer: "Grèbe",
-        anecdote:
-          "La position des pattes, très courtes et très en arrière par rapport au corps, a valu au grèbe le jolinom de pieds au derrière.",
-      },
-      {
-        id: 30,
-        question:
-          "Un bédane, qui doit son nom à sa ressemblance avec un bec de canard, est un outil proche du...",
-        propositions: ["Ciseau à bois", "Vilebrequin", "Rabot", "Maillet"],
-        answer: "Ciseau à bois",
-        anecdote:
-          "Le bédane est un outil encore parfois utilisé aujourd'hui pour réaliser des pièces en bois tournéesentre pointes.",
-      },
     ];
-    
-
     console.log("Starting game", game._id);
-    if (gameStatuses.get(game._id)) return;
-    gameStatuses.set(game._id, true);
-    remainingTimes.set(game._id, 15);
+    if (this.gameStatuses.get(game._id)) return;
+    this.gameStatuses.set(game._id, true);
+    this.remainingTimes.set(game._id, QUESTION_TIME_LIMIT);
     console.log(
       "Set remaining time for game",
       game._id,
       ":",
-      remainingTimes.get(game._id)
+      this.remainingTimes.get(game._id)
     );
 
-    if (remainingTimes.get(game._id) === undefined) {
+    if (this.remainingTimes.get(game._id) === undefined) {
       console.error("Could not set remaining time for game", game._id);
     }
 
-    const firstQuestion = await gameService.setCurrentQuestion(
+    const firstQuestion = await this.gameService.setCurrentQuestion(
       game._id,
       allQuizzes[0]
     );
-    namespace.to(game._id).emit("question", firstQuestion);
+    this.namespace.to(game._id).emit("question", firstQuestion);
 
     let questionIndex = 1;
 
     const interval = setInterval(async () => {
       try {
-        decrementRemainingTime(game._id);
-        const remainingTime = getRemainingTime(game._id);
-        namespace.to(game._id).emit("remaining_time", remainingTime);
+        if (!this.activeConnections.has(game._id)) {
+          console.log(
+            `No active connections for game ${game._id}. Not getting remaining time.`
+          );
+          clearInterval(interval);
+          return;
+        }
+        this.decrementRemainingTime(game._id);
+        const remainingTime = this.getRemainingTime(game._id);
+        this.namespace.to(game._id).emit("remaining_time", remainingTime);
 
         if (remainingTime <= 0) {
           if (questionIndex < allQuizzes.length) {
-            remainingTimes.set(game._id, 15); // Reset the remaining time to 15
+            this.remainingTimes.set(game._id, QUESTION_TIME_LIMIT);
             const questionData = {
               ...allQuizzes[questionIndex],
-              remainingTime: getRemainingTime(game._id),
+              remainingTime: this.getRemainingTime(game._id),
             };
-            const currentQuestion = await gameService.setCurrentQuestion(
+            const currentQuestion = await this.gameService.setCurrentQuestion(
               game._id,
               questionData
             );
-            namespace.to(game._id).emit("question", currentQuestion);
+            this.namespace.to(game._id).emit("question", currentQuestion);
             questionIndex += 1;
           } else {
             clearInterval(interval);
-            const winner = await Promise.race([
-              gameService.getWinner(game._id),
-              new Promise((_, reject) =>
-                setTimeout(
-                  () => reject(new Error("Getting winner took too long")),
-                  1000
-                )
-              ),
-            ]);
-            namespace.to(game._id).emit("game_over", winner);
+
+            const alivePlayers = await this.gameService.getAlivePlayers(
+              game._id
+            );
+            console.log("aliveplayer", alivePlayers);
+            if (alivePlayers.length <= 0) {
+              const winners = await this.gameService.getWinner(game._id);
+              console.log("voici le score end game", winners);
+              this.namespace.to(game._id).emit("game_over", winners);
+            }
           }
         }
       } catch (err) {
         console.error(err);
         clearInterval(interval);
       }
-    }, 1000); // changed this from 15*1000 to 1000 for every second emit.
+    }, 1000);
+    this.namespace
+      .to(game._id)
+      .emit("remaining_time", this.getRemainingTime(game._id));
+  }
 
-    namespace.to(game._id).emit("remaining_time", getRemainingTime(game._id));
-  };
-
-  const handleConnection = async (socket) => {
+  async handleConnection(socket) {
     const code = socket.handshake.query["code"];
     const { token } = socket.handshake.auth;
-    const user = await securityService.getUserFromToken(token);
-    const game = await gameService.findOneByCode(code);
+    const user = await this.securityService.getUserFromToken(token);
+    const game = await this.gameService.findOneByCode(code);
 
     if (!game) return;
-    if (game.isStarted) {
-      const currentQuestion = await gameService.getCurrentQuestion(game._id);
-      socket.emit("question", currentQuestion);
+    if (!this.activeConnections.has(game._id)) {
+      this.activeConnections.set(game._id, new Set());
+    }
+    this.activeConnections.get(game._id).add(user._id);
+    const players = await this.gameService.addPlayer(game._id, user);
 
-      // Emit the remaining time immediately after the socket connects
-      socket.emit("remaining_time", getRemainingTime(game._id));
-    }
-    const players = await gameService.addPlayer(game._id, user);
-    if (!game.isStarted && !gameStatuses.get(game._id)) {
-      await gameService.startGame(game._id);
-      startGame(game);
-    }
     socket.join(game._id);
 
-    namespace.to(game._id).emit("notification", {
+    this.namespace.to(game._id).emit("notification", {
       title: "Someone's here",
       description: `${user.username} just joined the game`,
     });
-    namespace.to(game._id).emit("players", players);
+
+    this.namespace.to(game._id).emit("players", players);
 
     if (game.isStarted) {
-      const currentQuestion = await gameService.getCurrentQuestion(game._id);
+      const currentQuestion = await this.gameService.getCurrentQuestion(
+        game._id
+      );
       socket.emit("question", currentQuestion);
-
-      socket.emit("remaining_time", getRemainingTime(game._id));
+      socket.emit("remaining_time", this.getRemainingTime(game._id));
+    } else if (!this.gameStatuses.get(game._id)) {
+      await this.gameService.startGame(game._id);
+      this.startGame(game);
     }
 
     socket.on("answer", async ({ questionId, answer }) => {
       try {
-        const isCorrect = await gameService.checkAnswer(
+        const isCorrect = await this.gameService.checkAnswer(
           game._id,
           questionId,
           answer
         );
+        const respondedQuickly = this.getRemainingTime(game._id) > 10;
+
         if (isCorrect) {
-          await gameService.incrementScore(game._id, user._id);
+          await this.gameService.incrementScore(
+            game._id,
+            user._id,
+            respondedQuickly
+          );
+          const updatedGame = await this.gameService.incrementScore(
+            game._id,
+            user._id,
+            respondedQuickly
+          );
+
+          if (updatedGame.players && updatedGame.players.length > 0) {
+            const updatedPlayer = updatedGame.players.find(
+              (player) => player.id === user._id
+            );
+
+            if (updatedPlayer) {
+              const updatedScore = updatedPlayer.score;
+              this.namespace.to(game._id).emit("score_updated", {
+                playerId: user._id,
+                score: updatedScore,
+              });
+            } else {
+              console.error("Player not found in updatedGame:", user._id);
+            }
+          } else {
+            console.error("No players or empty players array in updatedGame");
+          }
         } else {
-          await gameService.decrementLives(game._id, user._id);
-          const lives = await gameService.getLives(game._id, user._id);
+          await this.gameService.decrementLives(game._id, user._id);
+          const lives = await this.gameService.getLives(game._id, user._id);
           if (lives === 0) {
             socket.emit("eliminated");
             socket.leave(game._id);
-            await gameService.eliminatePlayer(game._id, user._id);
-            namespace.to(game._id).emit("player_eliminated", user.username);
+            await this.gameService.eliminatePlayer(game._id, user._id);
+            this.namespace
+              .to(game._id)
+              .emit("player_eliminated", user.username);
           }
         }
       } catch (error) {
         console.error("Error while processing answer:", error);
       }
-      if (game.players.length === 0) {
-        gameStatuses.set(game._id, false);
+
+      if (game && game.players.length === 0) {
+        this.gameStatuses.set(game._id, false);
       }
     });
-
     socket.on("reconnect", async () => {
       if (game.isStarted) {
         const currentQuestionData = {
-          ...(await gameService.getCurrentQuestion(game._id)),
-          remainingTime: getRemainingTime(game._id),
+          ...(await this.gameService.getCurrentQuestion(game._id)),
+          remainingTime: this.getRemainingTime(game._id),
         };
         socket.emit("question", currentQuestionData);
-
-        socket.emit("remaining_time", getRemainingTime(game._id));
+        console.log(currentQuestionData);
+        socket.emit("remaining_time", this.getRemainingTime(game._id));
+        const currentScore = await this.gameService.getCurrentScore(
+          game._id,
+          user._id
+        );
+        socket.emit("score", currentScore);
       }
     });
-
     socket.on("disconnect", async () => {
-      const players = await gameService.removePlayer(game._id, user._id);
-      namespace.to(game._id).emit("players", players);
-      namespace.to(game._id).emit("notification", {
-        title: "Someone just left",
-        description: `${user.username} just left the game`,
-      });
-      if (game.players.length === 0) {
-        gameStatuses.set(game._id, false);
+      try {
+        if (this.activeConnections.has(game._id)) {
+          this.activeConnections.get(game._id).delete(user._id);
+          if (this.activeConnections.get(game._id).size === 0) {
+            this.activeConnections.delete(game._id);
+          }
+        }
+        const players = await this.gameService.removePlayer(game._id, user._id);
+        this.namespace.to(game._id).emit("players", players);
+        this.namespace.to(game._id).emit("notification", {
+          title: "Someone just left",
+          description: `${user.username} just left the game`,
+        });
+        if (players.length === 0) {
+          const sortedPlayers = await this.gameService.sortPlayersByScore(
+            game._id
+          );
+          console.log(sortedPlayers);
+          const rankedPlayers = await this.gameService.rankPlayers(
+            sortedPlayers
+          );
+          const gameStatsData = {
+            stats: rankedPlayers.map((player) => ({
+              user: {
+                id: player.id,
+                username: player.username,
+              },
+              rank: player.rank,
+              score: player.score,
+              lives: player.lives,
+            })),
+          };
+          const savedStats = await this.gameStatsService.create(gameStatsData);
+          console.log("Game statistics saved successfully:", savedStats);
+          this.gameStatuses.delete(game._id);
+
+          console.log("Alive Players:", alivePlayers);
+          console.log("Game Statistics:", stats);
+        }
+      } catch (error) {
+        console.error("Error handling disconnect:", error);
       }
     });
-  };
+  }
+}
 
-  namespace.on("connection", handleConnection);
+module.exports = function (io) {
+  new GameServer(io);
 };
