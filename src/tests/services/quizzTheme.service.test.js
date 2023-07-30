@@ -1,12 +1,15 @@
-const chai = require("chai");
-const sinon = require("sinon");
-const expect = chai.expect;
+// Importation des dépendances
+const chai = require("chai"); // Bibliothèque Chai pour les assertions
+const sinon = require("sinon"); // Bibliothèque Sinon.js pour les faux (spies, stubs, mocks)
+const expect = chai.expect; // Méthode d'assertion "expect"
 
-const quizzThemeService = require("../../services/quizzTheme.service")();
-const QuizzTheme = require("../../models/quizzTheme.model");
-const ValidationError = require("../../errors/ValidationError");
+const quizzThemeService = require("../../services/quizzTheme.service")(); // Service de gestion des thèmes de quiz
+const QuizzTheme = require("../../models/quizzTheme.model"); // Modèle de thème de quiz
+const ValidationError = require("../../errors/ValidationError"); // Classe d'erreur pour la validation
 
+// Description des tests pour le service quizzThemeService
 describe("QuizzThemeService", function () {
+  // Description du test : trouver tous les thèmes de quiz en fonction de critères de recherche
   describe("findAll", function () {
     it("should find all quizz themes based on criteria", async function () {
       const criteria = { category: "history" };
@@ -34,6 +37,7 @@ describe("QuizzThemeService", function () {
     });
   });
 
+  // Description du test : créer un thème de quiz
   describe("create", function () {
     it("should create a quizz theme", async function () {
       const data = { title: "Ancient History" };
@@ -49,6 +53,7 @@ describe("QuizzThemeService", function () {
     });
   });
 
+  // Description du test : trouver un thème de quiz par son identifiant
   describe("findOne", function () {
     it("should find a quizz theme by ID", async function () {
       const id = "1";
@@ -64,6 +69,7 @@ describe("QuizzThemeService", function () {
     });
   });
 
+  // Description du test : remplacer un thème de quiz
   describe("replaceOne", function () {
     it("should replace a quizz theme", async function () {
       const id = "1";
@@ -79,6 +85,7 @@ describe("QuizzThemeService", function () {
     });
   });
 
+  // Description du test : mettre à jour un thème de quiz
   describe("updateOne", function () {
     it("should update a quizz theme", async function () {
       const id = "1";
@@ -97,6 +104,7 @@ describe("QuizzThemeService", function () {
     });
   });
 
+  // Description du test : supprimer un thème de quiz
   describe("deleteOne", function () {
     it("should delete a quizz theme by ID", async function () {
       const id = "1";

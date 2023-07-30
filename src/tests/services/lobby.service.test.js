@@ -1,12 +1,15 @@
-const chai = require("chai");
-const sinon = require("sinon");
-const expect = chai.expect;
+// Importation des dépendances
+const chai = require("chai"); // Bibliothèque Chai pour les assertions
+const sinon = require("sinon"); // Bibliothèque Sinon.js pour les faux (spies, stubs, mocks)
+const expect = chai.expect; // Méthode d'assertion "expect"
 
-const lobbyService = require("../../services/lobby.service")();
-const Lobby = require("../../models/lobby.model");
-const ValidationError = require("../../errors/ValidationError");
+const lobbyService = require("../../services/lobby.service")(); // Service de gestion du lobby
+const Lobby = require("../../models/lobby.model"); // Modèle Lobby (lobby de jeu)
+const ValidationError = require("../../errors/ValidationError"); // Classe d'erreur pour la validation
 
+// Description des tests pour le service lobbyService
 describe("LobbyService", function () {
+  // Description du test : trouver un lobby par son identifiant
   describe("findOne", function () {
     it("should find a lobby by ID", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
@@ -29,6 +32,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : trouver un lobby par le code d'invitation
   describe("findOneByCode", function () {
     it("should find a lobby by invitation code", async function () {
       const invitationCode = "ABC123";
@@ -50,6 +54,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : mettre à jour un lobby
   describe("updateOne", function () {
     it("should throw ValidationError when invalid data is provided", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
@@ -61,7 +66,7 @@ describe("LobbyService", function () {
         updatedAt: new Date(),
       };
 
-      // Define newData here
+      // Définir newData ici
       const newData = {
         invitation_code: "XYZ456",
         players: ["player3", "player4"],
@@ -82,6 +87,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : supprimer un lobby
   describe("deleteOne", function () {
     it("should delete a lobby by ID", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
@@ -93,9 +99,10 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : obtenir les joueurs dans un lobby par son identifiant
   describe("getPlayers", function () {
     it("should get players in a lobby by lobby ID", async function () {
-      // Test data
+      // Données de test
       const lobbyId = "60df60068a04914fb4c4c3b5";
       const lobbyData = {
         _id: lobbyId,
@@ -114,6 +121,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : ajouter un joueur à un lobby
   describe("addPlayer", function () {
     it("should add a player to a lobby", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
@@ -153,6 +161,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : supprimer un joueur d'un lobby
   describe("removePlayer", function () {
     it("should remove a player from a lobby", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
@@ -178,6 +187,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : voter pour un thème dans un lobby
   describe("voteTheme", function () {
     it("should vote for a theme in a lobby", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
@@ -213,6 +223,7 @@ describe("LobbyService", function () {
     });
   });
 
+  // Description du test : définir le thème voté pour un lobby
   describe("setVotedTheme", function () {
     it("should set the voted theme for a lobby", async function () {
       const lobbyId = "60df60068a04914fb4c4c3b5";
