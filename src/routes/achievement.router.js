@@ -3,9 +3,9 @@ const { USER_ROLES } = require("../utils/constants");
 module.exports = (options = {}) => {
 	const { Router } = require("express");
 	const router = Router();
-	const QuizzThemeService = require("../services/quizzTheme.service");
-	const QuizzThemeController = require("../controllers/quizzTheme.controller");
-	const controller = QuizzThemeController(QuizzThemeService());
+	const AchievementService = require("../services/achievement.service");
+	const AchievementController = require("../controllers/achievement.controller");
+	const controller = AchievementController(AchievementService());
 	const authRole = require("../middlewares/authRole");
 
 	router.get("/", controller.getAll);
