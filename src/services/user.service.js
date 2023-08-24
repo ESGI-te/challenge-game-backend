@@ -1,7 +1,11 @@
 const ValidationError = require("../errors/ValidationError");
 const User = require("../models/user.model");
+const UserAchievement = require("../models/userAchievement.model");
+const UserAchievementService = require("./userAchievement.service");
 
 module.exports = () => {
+	const userAchievementService = UserAchievementService();
+
 	return {
 		/** User */
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
@@ -18,6 +22,8 @@ module.exports = () => {
 		async create(data) {
 			try {
 				const user = await User.create(data);
+				await UserAchievement.create({ userId: user._id });
+
 				return user;
 			} catch (error) {
 				if (error.name === "ValidationError") {
@@ -83,6 +89,9 @@ module.exports = () => {
 					{ _id: id, "friends.id": { $ne: friendId } },
 					{ $addToSet: { friends: friendId } }
 				);
+
+				await userAchievementService.updateAchievementProgress(id, "friends_1");
+
 				return result.nModified > 0;
 			} catch (error) {
 				throw error;
@@ -115,6 +124,6 @@ module.exports = () => {
 			} catch (error) {
 				throw error;
 			}
-		}
+		},
 	};
 };

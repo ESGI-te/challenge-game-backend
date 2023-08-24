@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+
 const UserRouter = require("./src/routes/user.router");
 const QuizzRouter = require("./src/routes/quizz.router");
 const QuizzThemeRouter = require("./src/routes/quizzTheme.router");
@@ -10,10 +11,12 @@ const ShopRouter = require("./src/routes/shop.router");
 const InventoryRouter = require("./src/routes/inventory.router");
 const UserInvitationRouter = require("./src/routes/userInvitation.router");
 const GameInvitationRouter = require("./src/routes/gameInvitation.router");
-const GameStatsRouter = require('./src/routes/gameStats.router')
-const HistoryRouter = require('./src/routes/history.router')
-const StatsRouter = require('./src/routes/stats.router')
+const GameStatsRouter = require("./src/routes/gameStats.router");
+const HistoryRouter = require("./src/routes/history.router");
+const StatsRouter = require("./src/routes/stats.router");
 const StripeRouter = require("./src/routes/stripe.router.js");
+const AchievementRouter = require("./src/routes/achievement.router.js");
+const UserAchievementRouter = require("./src/routes/userAchievement.router.js");
 
 const GameSocket = require("./src/websockets/game.ws");
 const LobbySocket = require("./src/websockets/lobby.ws");
@@ -35,10 +38,10 @@ dayjs().format();
 dotenv.config();
 require("./src/db")();
 
-app.use(cors({origin : '*' }));
+app.use(cors({ origin: "*" }));
 
 const server = app.listen(3000, () => {
-  console.log("App listening on port 3000!");
+	console.log("App listening on port 3000!");
 });
 
 const io = require("./src/socket")(server);
@@ -69,5 +72,7 @@ app.use("/game-invitations", GameInvitationRouter());
 app.use("/game-stats", GameStatsRouter());
 app.use("/history", HistoryRouter());
 app.use("/stats", StatsRouter());
+app.use("/achievements", AchievementRouter());
+app.use("/user-achievements", UserAchievementRouter());
 
 app.use(errorsHandler);
