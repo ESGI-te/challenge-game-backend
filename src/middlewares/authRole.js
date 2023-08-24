@@ -5,9 +5,7 @@ function authRole(allowedRoles) {
 
 	return async (req, res, next) => {
 		try {
-			const authHeader = req.headers["authorization"];
-			const token = authHeader && authHeader.split(" ")[1]; // Remove Bearer from string
-
+			const token = req.headers["authorization"]?.split(" ")[1];
 			const user = await securityService.getUserFromToken(token);
 
 			if (user && user.roles.includes(allowedRoles)) {
