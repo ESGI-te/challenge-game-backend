@@ -1,3 +1,5 @@
+const { USER_ROLES } = require("../utils/constants");
+
 module.exports = (options = {}) => {
 	const { Router } = require("express");
 	const router = Router();
@@ -6,14 +8,14 @@ module.exports = (options = {}) => {
 	const userController = UserController(UserService());
 	const authRole = require("../middlewares/authRole");
 
-	router.get("/",authRole("admin"), userController.getAll);
-	router.post("/",authRole("admin"), userController.create);
+	router.get("/", authRole(USER_ROLES.ADMIN), userController.getAll);
+	router.post("/", authRole(USER_ROLES.ADMIN), userController.create);
 	router.get("/friends", userController.getFriends);
 
 	router.get("/:id", userController.getOne);
-	router.put("/:id",authRole("admin"), userController.replace);
-	router.patch("/:id",authRole("admin"), userController.update);
-	router.delete("/:id",authRole("admin"), userController.delete);
+	router.put("/:id", authRole(USER_ROLES.ADMIN), userController.replace);
+	router.patch("/:id", authRole(USER_ROLES.ADMIN), userController.update);
+	router.delete("/:id", authRole(USER_ROLES.ADMIN), userController.delete);
 
 	return router;
 };
