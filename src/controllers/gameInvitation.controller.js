@@ -1,6 +1,7 @@
 const UserService = require("../services/user.service");
 const SecurityService = require("../services/security.service");
 const LobbyService = require("../services/lobby.service");
+const UserAchievementService = require("../services/userAchievement.service");
 
 const {
 	Types: { ObjectId },
@@ -10,6 +11,7 @@ module.exports = (Service, options = {}) => {
 	const userService = UserService();
 	const securityService = SecurityService();
 	const lobbyService = LobbyService();
+	const userAchievementService = UserAchievementService();
 
 	return {
 		async getAll(req, res) {
@@ -81,6 +83,10 @@ module.exports = (Service, options = {}) => {
 				};
 
 				const gameInvitation = await Service.create(invitation);
+				userAchievementService.updateAchievementProgress(
+					user._id,
+					"invite_game_1"
+				);
 				return res.status(201).json(gameInvitation);
 			} catch (error) {
 				next(error);
@@ -109,7 +115,14 @@ module.exports = (Service, options = {}) => {
 				if (!user._id === invitation.recipient.id) {
 					return res.status(403).json({ message: "Unauthorized" });
 				}
-
+				await userAchievementService.updateAchievementProgress(
+					user._id,
+					"join_game_1"
+				);
+				await userAchievementService.updateAchievementProgress(
+					user._id,
+					"join_game_2"
+				);
 				await Service.deleteOne(req.body.id);
 
 				res.status(200).json({ invitation_code });

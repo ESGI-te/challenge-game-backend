@@ -97,7 +97,7 @@ module.exports = () => {
 				const newAchievement = {
 					id: achievement._id,
 					progress: 1,
-					achieved: false,
+					achieved: achievement.goal === 1,
 				};
 
 				await UserAchievement.updateOne(

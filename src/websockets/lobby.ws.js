@@ -3,11 +3,14 @@ const GameService = require("../services/game.service");
 const LobbyService = require("../services/lobby.service");
 const { WS_LOBBY_NAMESPACE } = require("../utils/constants");
 const { generateUID } = require("../utils/helpers");
+const UserAchievementService = require("../services/userAchievement.service");
 
 module.exports = (io) => {
 	const lobbyService = LobbyService();
 	const gameService = GameService();
 	const securityService = SecurityService();
+	const userAchievementService = UserAchievementService();
+
 	const namespace = io.of(WS_LOBBY_NAMESPACE);
 
 	let validationInProgress = new Map(); // TODO: Store the validation state in the database
@@ -56,7 +59,7 @@ module.exports = (io) => {
 			namespace.to(lobbyId).emit("error", "Could not create game");
 			return;
 		}
-
+		// await userAchievementService.updateAchievementProgress(id, "friends_2");
 		namespace.to(lobbyId).emit("game_created", gameCode);
 	};
 
@@ -70,7 +73,7 @@ module.exports = (io) => {
 	};
 
 	const handleConnection = async (socket) => {
-		const { code } = socket.handshake.query;
+		const { code, hasJoinByCode } = socket.handshake.query;
 		const { token } = socket.handshake.auth;
 		const lobby = await lobbyService.findOneByCode(code);
 
@@ -88,6 +91,17 @@ module.exports = (io) => {
 		}
 
 		socket.join(lobby.id);
+
+		if (hasJoinByCode) {
+			userAchievementService.updateAchievementProgress(
+				user._id,
+				"join_game_code_1"
+			);
+			userAchievementService.updateAchievementProgress(
+				user._id,
+				"join_game_code_2"
+			);
+		}
 
 		const players = await lobbyService.addPlayer(lobby.id, user);
 

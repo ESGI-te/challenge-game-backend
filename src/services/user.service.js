@@ -90,7 +90,8 @@ module.exports = () => {
 					{ $addToSet: { friends: friendId } }
 				);
 
-				await userAchievementService.updateAchievementProgress(id, "friends_1");
+				userAchievementService.updateAchievementProgress(id, "friends_1");
+				userAchievementService.updateAchievementProgress(id, "friends_2");
 
 				return result.nModified > 0;
 			} catch (error) {
