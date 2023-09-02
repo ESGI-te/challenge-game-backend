@@ -74,7 +74,7 @@ module.exports = (io) => {
 			const updatedFields = change.updateDescription.updatedFields;
 
 			updatedDocument.achievements.forEach(async (achievement, index) => {
-				if (updatedFields && updatedFields[`achievements.${index}.achieved`]) {
+				if (updatedFields && updatedFields[`achievements.${index}`]?.achieved) {
 					const isAchieved = achievement.achieved;
 
 					if (!isAchieved) return;
