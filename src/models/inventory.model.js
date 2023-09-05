@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
  */
 
 const InventorySchema = new mongoose.Schema({
-  item: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product", default: [] }],
+  item: [{ type: mongoose.Schema.Types.ObjectId, enum: ["Product", "Theme" ,"ThemePack", "Avatar", "AvatarPack"], default: [] }],
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true  },
 });
 
