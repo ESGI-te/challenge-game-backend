@@ -131,15 +131,7 @@ module.exports = function () {
         throw error;
       }
     },
-    async getAlivePlayers(gameId) {
-      try {
-        const game = await this.findOne(gameId);
-        const alivePlayers = game.players.filter((player) => player.lives > 0);
-        return alivePlayers;
-      } catch (error) {
-        throw error;
-      }
-    },
+
     async checkAnswer(gameId, questionId, answer) {
       try {
         let game = await this.findOne(gameId);
@@ -282,20 +274,62 @@ module.exports = function () {
         throw error;
       }
     },
-    async getWinner(gameId) {
+    async getAlivePlayers(gameId) {
       try {
         const game = await this.findOne(gameId);
-        const players = await gameService.getAlivePlayers(game._id);
-        if (players.length === 0) {
-          gameStatuses.set(game._id, false);
-        }
-        const sortedPlayers = game.players.sort((a, b) => b.score - a.score);
-        const highestScore = sortedPlayers[0].score;
-        const winners = sortedPlayers.filter(
-          (player) => player.score === highestScore
-        );
-        return winners;
+        const alivePlayers = game.players.filter((player) => player.lives > 0);
+        return alivePlayers;
       } catch (error) {
+        throw error;
+      }
+    },
+    async getAllPlayers(gameId) {
+      try {
+        const game = await this.findOne(gameId);
+        return game.players;
+      } catch (error) {
+        throw error;
+      }
+    },
+    rankPlayers(players) {
+      // Sort players in descending order of scores
+      players.sort((a, b) => b.score - a.score);
+
+      // Assign ranks to players
+      players.forEach((player, index) => {
+        player.rank = index + 1;
+      });
+
+      return players;
+    },
+    async getWinner(gameId) {
+      try {
+        const getAllPlayers = await this.getAllPlayers(gameId);
+        console.log("this is getAllPlayers ", getAllPlayers);
+        if (!Array.isArray(getAllPlayers) || getAllPlayers.length === 0) {
+          console.warn("No alive players found for game ID:", gameId);
+          return [];
+        }
+
+        const sortedPlayers = this.alivePlayers.sort(
+          (a, b) => b.score - a.score
+        );
+
+        let rank = 1;
+        let prevScore = sortedPlayers[0].score;
+
+        for (let i = 0; i < sortedPlayers.length; i++) {
+          if (sortedPlayers[i].score !== prevScore && i !== 0) {
+            rank++;
+          }
+
+          sortedPlayers[i].rank = rank;
+          prevScore = sortedPlayers[i].score;
+        }
+
+        return sortedPlayers;
+      } catch (error) {
+        console.error("Error in getWinner:", error);
         throw error;
       }
     },
