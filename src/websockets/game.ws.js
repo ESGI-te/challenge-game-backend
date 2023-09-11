@@ -2,7 +2,7 @@ const SecurityService = require("../services/security.service");
 const GameService = require("../services/game.service");
 const GameStatsService = require("../services/gameStats.service");
 const { WS_GAME_NAMESPACE } = require("../utils/constants");
-const QUESTION_TIME_LIMIT = 15;
+const QUESTION_TIME_LIMIT = 4;
 
 class GameServer {
   constructor(io) {
@@ -269,10 +269,8 @@ class GameServer {
           description: `${user.username} just left the game`,
         });
         if (players.length === 0) {
-          const sortedPlayers = await this.gameService.sortPlayersByScore(
-            game._id
-          );
-          console.log(sortedPlayers);
+          const sortedPlayers = await this.gameService.getAllPlayers(game._id);
+          console.log("sortedplayer:", sortedPlayers);
           const rankedPlayers = await this.gameService.rankPlayers(
             sortedPlayers
           );
@@ -290,9 +288,6 @@ class GameServer {
           const savedStats = await this.gameStatsService.create(gameStatsData);
           console.log("Game statistics saved successfully:", savedStats);
           this.gameStatuses.delete(game._id);
-
-          console.log("Alive Players:", alivePlayers);
-          console.log("Game Statistics:", stats);
         }
       } catch (error) {
         console.error("Error handling disconnect:", error);
