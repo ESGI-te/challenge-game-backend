@@ -23,6 +23,10 @@ const UserSchema = new mongoose.Schema({
 		enum: Object.values(USER_ROLES),
 		default: [USER_ROLES.USER],
 	},
+	equiped: {
+        template: { type: String, required: true, default: '' },
+        icon: { type: String, required: true, default: '' },
+	},
 	friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
 });
 

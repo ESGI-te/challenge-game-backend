@@ -77,6 +77,7 @@ module.exports = (Service, options = {}) => {
 			} catch (error) {
 				next(error);
 			}
-		}
+		},
+		
 	};
 };
