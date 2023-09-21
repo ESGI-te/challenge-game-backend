@@ -291,11 +291,11 @@ module.exports = function () {
         throw error;
       }
     },
-    rankPlayers(players) {
-      // Sort players in descending order of scores
-      players.sort((a, b) => b.score - a.score);
 
-      // Assign ranks to players
+    rankPlayers(players) {
+      if (!players) return [];
+
+      players.sort((a, b) => b.score - a.score);
       players.forEach((player, index) => {
         player.rank = index + 1;
       });
@@ -311,9 +311,7 @@ module.exports = function () {
           return [];
         }
 
-        const sortedPlayers = this.alivePlayers.sort(
-          (a, b) => b.score - a.score
-        );
+        const sortedPlayers = getAllPlayers.sort((a, b) => b.score - a.score);
 
         let rank = 1;
         let prevScore = sortedPlayers[0].score;
