@@ -17,5 +17,10 @@ module.exports = (options = {}) => {
 	router.patch("/:id", authRole(USER_ROLES.ADMIN), userController.update);
 	router.delete("/:id", authRole(USER_ROLES.ADMIN), userController.delete);
 
+	router.get("/:id/equiped", userController.getOne);
+	router.put("/:id/equiped",  userController.replace);
+	router.patch("/:id/equiped",  userController.update);
+	router.delete("/:id/equiped",  userController.delete);
+
 	return router;
 };
