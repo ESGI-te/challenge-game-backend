@@ -2,8 +2,7 @@ const SecurityService = require("../services/security.service");
 const GameService = require("../services/game.service");
 const GameStatsService = require("../services/gameStats.service");
 const { WS_GAME_NAMESPACE } = require("../utils/constants");
-const QUESTION_TIME_LIMIT = 4;
-
+const QUESTION_TIME_LIMIT = 15;
 class GameServer {
   constructor(io) {
     this.io = io;
@@ -13,24 +12,53 @@ class GameServer {
     this.namespace = this.io.of(WS_GAME_NAMESPACE);
     this.gameStatuses = new Map();
     this.remainingTimes = new Map();
+    this.playersBeforeLastRemoval = new Map();
+    this.allPlayersMap = new Map();
+    this.connectedPlayers = new Map();
+    this.gameScores = new Map();
+    this.backupRemainingTimes = new Map();
+
     this.activeConnections = new Map();
     this.namespace.on("connection", this.handleConnection.bind(this));
   }
 
   getRemainingTime(gameId) {
     const remaining = this.remainingTimes.get(gameId);
-    console.log(`Getting remaining time for game ${gameId}:`, remaining);
+    const backupRemaining = this.backupRemainingTimes.get(gameId);
+
+    if (typeof remaining === "undefined") {
+      console.error(
+        `Error: Remaining time for game ${gameId} is undefined. Using backup value: ${backupRemaining}`
+      );
+      return backupRemaining || 0;
+    }
     return remaining;
   }
 
   decrementRemainingTime(gameId) {
+    // Décrémenter la valeur principale
     if (this.remainingTimes.has(gameId)) {
-      this.remainingTimes.set(gameId, this.remainingTimes.get(gameId) - 1);
+      let newTime = this.remainingTimes.get(gameId) - 1;
+      this.remainingTimes.set(gameId, newTime);
     }
+
+    // Décrémenter la valeur de secours
+    if (this.backupRemainingTimes.has(gameId)) {
+      let backupNewTime = this.backupRemainingTimes.get(gameId) - 1;
+      this.backupRemainingTimes.set(gameId, backupNewTime);
+    } else {
+      // Si backupRemainingTimes n'a pas encore de valeur pour ce gameId, on peut initialiser avec une valeur.
+      this.backupRemainingTimes.set(gameId, SOME_INITIAL_VALUE);
+    }
+
+    console.log(
+      `Remaining time for game ${gameId}: ${this.remainingTimes.get(
+        gameId
+      )}, Backup remaining time: ${this.backupRemainingTimes.get(gameId)}`
+    );
   }
 
   async startGame(game) {
-    ///test plus rapide
     const allQuizzes = [
       {
         id: 1,
@@ -84,7 +112,9 @@ class GameServer {
       ":",
       this.remainingTimes.get(game._id)
     );
-
+    if (!this.backupRemainingTimes.has(game._id)) {
+      this.backupRemainingTimes.set(game._id, QUESTION_TIME_LIMIT);
+    }
     if (this.remainingTimes.get(game._id) === undefined) {
       console.error("Could not set remaining time for game", game._id);
     }
@@ -108,7 +138,6 @@ class GameServer {
         }
         this.decrementRemainingTime(game._id);
         const remainingTime = this.getRemainingTime(game._id);
-        this.namespace.to(game._id).emit("remaining_time", remainingTime);
 
         if (remainingTime <= 0) {
           if (questionIndex < allQuizzes.length) {
@@ -136,6 +165,8 @@ class GameServer {
               this.namespace.to(game._id).emit("game_over", winners);
             }
           }
+        } else {
+          this.namespace.to(game._id).emit("remaining_time", remainingTime);
         }
       } catch (err) {
         console.error(err);
@@ -262,18 +293,49 @@ class GameServer {
             this.activeConnections.delete(game._id);
           }
         }
-        const players = await this.gameService.removePlayer(game._id, user._id);
-        this.namespace.to(game._id).emit("players", players);
-        this.namespace.to(game._id).emit("notification", {
-          title: "Someone just left",
-          description: `${user.username} just left the game`,
+        const allPlayers = await this.gameService.getAllPlayers(game._id);
+        let existingPlayers = this.playersBeforeLastRemoval.get(game._id) || [];
+
+        const playerBeingRemoved = {
+          username: user.username,
+          id: user._id,
+          score: user.score,
+          lives: user.lives,
+        };
+
+        let playerMap = new Map(
+          [...existingPlayers, playerBeingRemoved].map((player) => [
+            player.id.toString(),
+            player,
+          ])
+        );
+        allPlayers.forEach((player) => {
+          playerMap.set(player.id.toString(), player);
         });
-        if (players.length === 0) {
-          const sortedPlayers = await this.gameService.getAllPlayers(game._id);
-          console.log("sortedplayer:", sortedPlayers);
-          const rankedPlayers = await this.gameService.rankPlayers(
-            sortedPlayers
-          );
+
+        let combinedPlayers = [...playerMap.values()];
+
+        console.log("All players before last removal:", combinedPlayers);
+
+        console.log(
+          "Debug - playersBeforeLastRemoval:",
+          this.playersBeforeLastRemoval.get(game._id)
+        );
+        const playersAfterRemoval = await this.gameService.removePlayer(
+          game._id,
+          user._id
+        );
+        console.log("Players after removal:", playersAfterRemoval);
+
+        this.namespace.to(game._id).emit("players", combinedPlayers);
+        console.log("combinedPlayers", combinedPlayers);
+
+        if (playersAfterRemoval.length === 0) {
+          console.log("All players:", combinedPlayers);
+          const rankedPlayers = this.gameService.rankPlayers(combinedPlayers);
+
+          console.log("Ranked players:", rankedPlayers);
+
           const gameStatsData = {
             stats: rankedPlayers.map((player) => ({
               user: {
@@ -285,9 +347,14 @@ class GameServer {
               lives: player.lives,
             })),
           };
+
           const savedStats = await this.gameStatsService.create(gameStatsData);
           console.log("Game statistics saved successfully:", savedStats);
+
+          this.playersBeforeLastRemoval.delete(game._id);
           this.gameStatuses.delete(game._id);
+        } else {
+          this.playersBeforeLastRemoval.set(game._id, combinedPlayers);
         }
       } catch (error) {
         console.error("Error handling disconnect:", error);
