@@ -78,7 +78,10 @@ module.exports = (Service, options = {}) => {
     },
 
     async getThemesPackByUser(req, res) {
-      const inventory = await Service.findOneByUser(req.body.user_id);
+      const token = req.headers["authorization"]?.split(" ")[1];
+      const user = await securityService.getUserFromToken(token);
+      const user_id = user._id.toString();
+      const inventory = await Service.findOneByUser(user_id);
       if (!inventory) {
         res.sendStatus(404);
       } else {
