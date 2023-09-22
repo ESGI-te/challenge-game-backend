@@ -7,11 +7,14 @@ module.exports = (options = {}) => {
 	// Créer une instance du contrôleur en passant le service correspondant
 	const controller = InventoryController(InventoryService());
 	// Définir les routes et associer les méthodes du contrôleur aux routes correspondantes
+	router.get("/themes", controller.getThemesByUser);
+	router.get("/theme-packs", controller.getThemesPackByUser);
 	router.post("/", controller.create);
 	router.get("/", controller.getAll);
 	router.get("/:id", controller.getOne);
 	router.patch("/:id", controller.update);
 	router.delete("/:id", controller.delete);
+
 	return router;
   };
   
