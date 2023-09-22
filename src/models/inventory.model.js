@@ -5,7 +5,8 @@ const mongoose = require("mongoose");
  */
 
 const InventorySchema = new mongoose.Schema({
-  item: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product", default: [] }],
+  themes: [{ type: mongoose.Schema.Types.ObjectId, ref: "QuizzTheme", default: [] }],
+  theme_packs: [{ type: mongoose.Schema.Types.ObjectId, ref: "QuizzTheme", default: [] }],
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true  },
 });
 

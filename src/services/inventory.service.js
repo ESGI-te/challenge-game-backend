@@ -6,11 +6,11 @@ module.exports = function () {
     // Méthode pour récupérer tous les produits en fonction des critères de recherche, pagination et tri
     async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
       try {
-        const itemList = await Inventory.find(criteria)
+        const Inventorys = await Inventory.find(criteria)
           .limit(itemsPerPage)
           .skip((page - 1) * itemsPerPage)
           .sort(order);
-        return itemList;
+        return Inventorys;
       } catch (error) {
         throw error;
       }
@@ -18,8 +18,8 @@ module.exports = function () {
     // Méthode pour créer un nouveau inventaire
     async create(data) {
       try {
-        const item = await Inventory.create(data);
-        return item;
+        const inventory = await Inventory.create(data);
+        return inventory;
       } catch (error) {
         if (error.name === "ValidationError") {
           throw ValidationError.createFromMongooseValidationError(error);
@@ -34,14 +34,16 @@ module.exports = function () {
         return inventaire;
       } catch (error) {throw error;}
     },
-    async findOneByUser(criteria) {
+
+    async findOneByUser(userId) {
       try {
-        const inventaire = await Inventory.findOne({userId: criteria.userId});
+        const inventaire = await Inventory.findOne({userId});
         return inventaire;
       } catch (error) {
-        // throw error;
+        throw error;
       }
     },
+
     async replaceOne(id, newData) {
 			try {
 				const deleted = await Inventory.deleteOne(id);
@@ -70,6 +72,40 @@ module.exports = function () {
         throw error;
       }
     },
+
+    async addTheme(objectId, newData) {
+      try {
+        const themes = await Inventory.findByIdAndUpdate(
+          objectId,
+          {$set: {themes: newData.themes}},
+          {new: true}
+        );
+        return themes;
+      } catch (error) {
+        if (error.name === "ValidationError") {
+          throw ValidationError.createFromMongooseValidationError(error);
+        }
+        throw error;
+      }
+    },
+
+    async addThemePack(objectId, newData) {
+      try {
+        const themePacks = await Inventory.findByIdAndUpdate(
+          objectId,
+          {$set: {theme_packs: newData.theme_packs}},
+          {new: true}
+        );
+        return themePacks;
+      } catch (error) {
+        if (error.name === "ValidationError") {
+          throw ValidationError.createFromMongooseValidationError(error);
+        }
+        throw error;
+      }
+    },
+
+
     // Méthode pour supprimer un inventaire par son ID
     async deleteOne(id) {
       try {
