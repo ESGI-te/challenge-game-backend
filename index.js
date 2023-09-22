@@ -20,7 +20,6 @@ const UserAchievementRouter = require("./src/routes/userAchievement.router.js");
 
 const ThemePackRouter = require("./src/routes/quizzThemePack.router.js");
 
-
 const GameSocket = require("./src/websockets/game.ws");
 const LobbySocket = require("./src/websockets/lobby.ws");
 const NotificationSocket = require("./src/websockets/notification.ws");
@@ -35,7 +34,6 @@ const wsAuthGuard = require("./src/middlewares/wsAuth");
 const app = express();
 
 const dayjs = require("dayjs");
-
 
 dayjs().format();
 
@@ -81,4 +79,3 @@ app.use("/achievements", AchievementRouter());
 app.use("/user-achievements", UserAchievementRouter());
 
 app.use(errorsHandler);
-
