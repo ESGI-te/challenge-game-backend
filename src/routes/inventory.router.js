@@ -16,5 +16,4 @@ module.exports = (options = {}) => {
 	router.delete("/:id", controller.delete);
 
 	return router;
-  };
-  
+};
