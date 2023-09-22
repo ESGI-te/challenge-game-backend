@@ -9,7 +9,10 @@ module.exports = (options = {}) => {
 	const authRole = require("../middlewares/authRole");
 
 	router.get("/", controller.getAll);
-	router.post("/", authRole(USER_ROLES.ADMIN), controller.create);
+	// router.post("/", authRole(USER_ROLES.ADMIN), controller.create);
+
+	router.post("/", controller.create);
+
 
 	router.get("/:id", controller.getOne);
 	router.put("/:id", authRole(USER_ROLES.ADMIN), controller.replace);

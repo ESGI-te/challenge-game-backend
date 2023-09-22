@@ -34,6 +34,14 @@ module.exports = () => {
 				throw error;
 			}
 		},
+		async findOneByName(name) {
+			try {
+				const quizzTheme = await QuizzTheme.findOne({name: name});
+				return quizzTheme;
+			} catch (error) {
+				throw error;
+			}
+		},
 		async replaceOne(id, newData) {
 			try {
 				const deleted = await this.deleteOne(id);

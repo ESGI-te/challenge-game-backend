@@ -18,6 +18,9 @@ const StripeRouter = require("./src/routes/stripe.router.js");
 const AchievementRouter = require("./src/routes/achievement.router.js");
 const UserAchievementRouter = require("./src/routes/userAchievement.router.js");
 
+const ThemePackRouter = require("./src/routes/quizzThemePack.router.js");
+
+
 const GameSocket = require("./src/websockets/game.ws");
 const LobbySocket = require("./src/websockets/lobby.ws");
 const NotificationSocket = require("./src/websockets/notification.ws");
@@ -32,6 +35,7 @@ const wsAuthGuard = require("./src/middlewares/wsAuth");
 const app = express();
 
 const dayjs = require("dayjs");
+
 
 dayjs().format();
 
@@ -65,6 +69,7 @@ app.use("/shop", ShopRouter());
 app.use("/inventory", InventoryRouter());
 app.use("/quizzs", QuizzRouter());
 app.use("/quizz-themes", QuizzThemeRouter());
+app.use("/quizz-themes-packs", ThemePackRouter());
 app.use("/games", GameRouter());
 app.use("/lobbies", LobbyRouter());
 app.use("/user-invitations", UserInvitationRouter());
@@ -76,3 +81,4 @@ app.use("/achievements", AchievementRouter());
 app.use("/user-achievements", UserAchievementRouter());
 
 app.use(errorsHandler);
+
