@@ -2,7 +2,7 @@ const SecurityService = require("../services/security.service");
 const GameService = require("../services/game.service");
 const GameStatsService = require("../services/gameStats.service");
 const { WS_GAME_NAMESPACE } = require("../utils/constants");
-const QUESTION_TIME_LIMIT = 15;
+const QUESTION_TIME_LIMIT = 7;
 class GameServer {
   constructor(io) {
     this.io = io;
@@ -30,7 +30,13 @@ class GameServer {
       console.error(
         `Error: Remaining time for game ${gameId} is undefined. Using backup value: ${backupRemaining}`
       );
-      return backupRemaining || 0;
+      if (typeof backupRemaining === "undefined") {
+        console.error(
+          `Both main and backup remaining times for game ${gameId} are undefined!`
+        );
+        return;
+      }
+      return backupRemaining;
     }
     return remaining;
   }
@@ -48,7 +54,7 @@ class GameServer {
       this.backupRemainingTimes.set(gameId, backupNewTime);
     } else {
       // Si backupRemainingTimes n'a pas encore de valeur pour ce gameId, on peut initialiser avec une valeur.
-      this.backupRemainingTimes.set(gameId, SOME_INITIAL_VALUE);
+      this.backupRemainingTimes.set(gameId, QUESTION_TIME_LIMIT);
     }
 
     console.log(
@@ -101,6 +107,221 @@ class GameServer {
         anecdote:
           "Didier Barbelivien, Michel Fugain et Danyel Gérard ont fait partie de la liste des artistes qui ont composé pour Hervé Vilard.",
       },
+      {
+        id: 5,
+        question:
+          "Quel peintre, né en 1844, est également appelé par beaucoup le Douanier ?",
+        propositions: [
+          "Henri Rousseau",
+          "Salvador Dali",
+          "Pablo Picasso",
+          "Edgar Degas",
+        ],
+        answer: "Henri Rousseau",
+      },
+      {
+        id: 6,
+        question:
+          "Quel personnage imaginaire fut popularisé par le roman de E.R. Burroughs et par le cinéma ?",
+        propositions: ["Nessie", "Le Yéti", "King-Kong", "Tarzan"],
+        answer: "Tarzan",
+      },
+      {
+        id: 7,
+        question:
+          "Quelle est la seule valeur à la roulette à porter la couleur verte ?",
+        propositions: ["Treize", "Cinquante", "Zéro", "Quarante"],
+        answer: "Zéro",
+      },
+      // {
+      //   id: 8,
+      //   question:
+      //     "Quelle est la race du chien de Columbo, l'inspecteur obstiné et perspicace de la télé ?",
+      //   propositions: ["Barbet", "Bichon", "Beagle", "Basset"],
+      //   answer: "Basset",
+      // },
+      // {
+      //   id: 9,
+      //   question:
+      //     "Quelle est la plus petite unité de mémoire utilisable sur un ordinateur ?",
+      //   propositions: ["Byte", "Giga", "Bit", "Méga"],
+      //   answer: "Bit",
+      // },
+      // {
+      //   id: 10,
+      //   question:
+      //     "Dans le langage familier, comment appelle-t-on la dent du petit enfant ?",
+      //   propositions: ["Marmotte", "Bouillotte", "Quenotte", "Menotte"],
+      //   answer: "Quenotte",
+      // },
+      // {
+      //   id: 11,
+      //   question:
+      //     "Où se situe la célèbre base navale américaine de Guantanamo, réputée pour sa sévérité ?",
+      //   propositions: ["Mexique", "Cuba", "Paraguay", "Hawaii"],
+      //   answer: "Cuba",
+      // },
+      // {
+      //   id: 12,
+      //   question:
+      //     "Quelle est la spécialité du sportif tunisien Oussama Mellouli ?",
+      //   propositions: ["Football", "Natation", "Marathon", "Boxe"],
+      //   answer: "Natation",
+      // },
+      // {
+      //   id: 13,
+      //   question:
+      //     "Quel acteur français a remporté le premier rôle dans le film « Le Guépard » ?",
+      //   propositions: [
+      //     "Jean Reno",
+      //     "Claude Brasseur",
+      //     "Jean Gabin",
+      //     "Alain Delon",
+      //   ],
+      //   answer: "Alain Delon",
+      // },
+      // {
+      //   id: 14,
+      //   question:
+      //     "Qui était le compagnon de Paul de Tarse, désigné aussi sous le nom de saint Paul ?",
+      //   propositions: [
+      //     "Saint Matthieu",
+      //     "Saint Marc",
+      //     "Saint Luc",
+      //     "Saint Jean",
+      //   ],
+      //   answer: "Saint Luc",
+      // },
+      // {
+      //   id: 15,
+      //   question:
+      //     "Quel titre de noblesse est immédiatement inférieur à celui de comte ?",
+      //   propositions: ["Archiduc", "Duc", "Marquis", "Vicomte"],
+      //   answer: "Vicomte",
+      // },
+      // {
+      //   id: 16,
+      //   question:
+      //     "Quelle est la capitale de la Nouvelle-Zélande, au sud-ouest de l'océan Pacifique ?",
+      //   propositions: ["Auckland", "Wellington", "Dublin", "Sydney"],
+      //   answer: "Wellington",
+      // },
+      // {
+      //   id: 17,
+      //   question:
+      //     "Quel film a réuni sur les écrans Isabelle Adjani et Sharon Stone ?",
+      //   propositions: [
+      //     "Les sorcières",
+      //     "Les ensorceleuses",
+      //     "Diabolique",
+      //     "Ange et Démon",
+      //   ],
+      //   answer: "Diabolique",
+      // },
+      // {
+      //   id: 18,
+      //   question: "Comment est également appelée la Transat Jacques Vabre ?",
+      //   propositions: [
+      //     "Vendée Globe",
+      //     "Route du rhum",
+      //     "Route du café",
+      //     "Trophée du rhum",
+      //   ],
+      //   answer: "Route du café",
+      // },
+      // {
+      //   id: 19,
+      //   question:
+      //     "Quel oiseau vivant dans l'hémisphère nord nage le plus vite ?",
+      //   propositions: ["Pingouin", "Bécassine", "Pie", "Martinet"],
+      //   answer: "Pingouin",
+      // },
+      // {
+      //   id: 20,
+      //   question:
+      //     "Quelle est la plus grosse des planètes de notre Système solaire ?",
+      //   propositions: ["Neptune", "Saturne", "Jupiter", "Uranus"],
+      //   answer: "Jupiter",
+      // },
+      // {
+      //   id: 21,
+      //   question:
+      //     "Apparu il y a 450 millions d'années, à quelle classe animale le scorpion appartient-il ?",
+      //   propositions: ["Arachnides", "Reptiles", "Mammifères", "Insectes"],
+      //   answer: "Arachnides",
+      // },
+      // {
+      //   id: 22,
+      //   question:
+      //     "Quel frère d'une actrice prénommée Mary a réalisé le film « La fièvre du samedi soir » ?",
+      //   propositions: [
+      //     "John Payne",
+      //     "John Remezick",
+      //     "John Travolta",
+      //     "John Badham",
+      //   ],
+      //   answer: "John Badham",
+      // },
+      // {
+      //   id: 23,
+      //   question: "Au Moyen Âge, comment appelait-on un village fortifié ?",
+      //   propositions: ["Tour", "Bastide", "Rempart", "Château fort"],
+      //   answer: "Bastide",
+      // },
+      // {
+      //   id: 24,
+      //   question:
+      //     "Quelle ville du Kent est célèbre pour sa source miraculeuse ?",
+      //   propositions: ["Dartford", "Tunbridge Wells", "Gillingham", "Ramsgate"],
+      //   answer: "Tunbridge Wells",
+      // },
+      // {
+      //   id: 25,
+      //   question:
+      //     "Quel apéritif à base de vin est aromatisé avec des plantes amères et toniques ?",
+      //   propositions: ["Vermouth", "Gentiane", "Kokebok", "Piccolo"],
+      //   answer: "Vermouth",
+      // },
+      // {
+      //   id: 26,
+      //   question:
+      //     "À quel écrivain, membre de l'Académie française, doit-on le roman intitulé « Le sagouin » ?",
+      //   propositions: ["Giono", "Barjavel", "Mauriac", "Camus"],
+      //   answer: "Mauriac",
+      // },
+      // {
+      //   id: 27,
+      //   question:
+      //     "Quel président Français trouva la mort dans une situation inhabituelle ?",
+      //   propositions: [
+      //     "René Coty",
+      //     "Félix Faure",
+      //     "Georges Pompidou",
+      //     "Raymond Poincaré",
+      //   ],
+      //   answer: "Félix Faure",
+      // },
+      // {
+      //   id: 28,
+      //   question:
+      //     "Comment appelle-t-on le versant de la montagne non situé au soleil ?",
+      //   propositions: ["Ressac", "Étant", "Adret", "Ubac"],
+      //   answer: "Ubac",
+      // },
+      // {
+      //   id: 29,
+      //   question:
+      //     "Quel oiseau palmipède a pour particularité de construire un nid flottant ?",
+      //   propositions: ["Grèle", "Grèbe", "Grène", "Grève"],
+      //   answer: "Grèbe",
+      // },
+      // {
+      //   id: 30,
+      //   question:
+      //     "Un bédane, qui doit son nom à sa ressemblance avec un bec de canard, est un outil proche du...",
+      //   propositions: ["Ciseau à bois", "Vilebrequin", "Rabot", "Maillet"],
+      //   answer: "Ciseau à bois",
+      // },
     ];
     console.log("Starting game", game._id);
     if (this.gameStatuses.get(game._id)) return;
@@ -145,6 +366,7 @@ class GameServer {
             const questionData = {
               ...allQuizzes[questionIndex],
               remainingTime: this.getRemainingTime(game._id),
+              backupRemainingTime: this.backupRemainingTimes.get(game._id),
             };
             const currentQuestion = await this.gameService.setCurrentQuestion(
               game._id,
@@ -155,15 +377,14 @@ class GameServer {
           } else {
             clearInterval(interval);
 
+            const winners = await this.gameService.getWinner(game._id);
+            console.log("voici le score end game", winners);
+            this.namespace.to(game._id).emit("game_over", winners);
+
             const alivePlayers = await this.gameService.getAlivePlayers(
               game._id
             );
             console.log("aliveplayer", alivePlayers);
-            if (alivePlayers.length <= 0) {
-              const winners = await this.gameService.getWinner(game._id);
-              console.log("voici le score end game", winners);
-              this.namespace.to(game._id).emit("game_over", winners);
-            }
           }
         } else {
           this.namespace.to(game._id).emit("remaining_time", remainingTime);
@@ -205,11 +426,27 @@ class GameServer {
         game._id
       );
       socket.emit("question", currentQuestion);
-      socket.emit("remaining_time", this.getRemainingTime(game._id));
+      this.namespace
+        .to(game._id)
+        .emit("remaining_time", this.getRemainingTime(game._id));
     } else if (!this.gameStatuses.get(game._id)) {
       await this.gameService.startGame(game._id);
       this.startGame(game);
     }
+
+    socket.on("request_remaining_time", async () => {
+      try {
+        const remainingTime = this.getRemainingTime(game._id);
+        if (typeof remainingTime === "undefined") {
+          console.error(`No remaining time for game ${game._id}`);
+          socket.emit("remaining_time", QUESTION_TIME_LIMIT);
+        } else {
+          socket.emit("remaining_time", remainingTime);
+        }
+      } catch (error) {
+        console.error("Error fetching remaining time:", error);
+      }
+    });
 
     socket.on("answer", async ({ questionId, answer }) => {
       try {
@@ -274,10 +511,14 @@ class GameServer {
         const currentQuestionData = {
           ...(await this.gameService.getCurrentQuestion(game._id)),
           remainingTime: this.getRemainingTime(game._id),
+          backupRemainingTime: this.backupRemainingTimes.get(game._id),
         };
         socket.emit("question", currentQuestionData);
         console.log(currentQuestionData);
-        socket.emit("remaining_time", this.getRemainingTime(game._id));
+        this.namespace
+          .to(game._id)
+          .emit("remaining_time", this.getRemainingTime(game._id));
+
         const currentScore = await this.gameService.getCurrentScore(
           game._id,
           user._id
