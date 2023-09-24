@@ -5,25 +5,26 @@ const mongoose = require("mongoose");
  */
 
 const HistorySchema = new mongoose.Schema({
-  games: [
-    {
-      gameStatsId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "GameStats",
-        required: true,
-      },
-      rank: { type: Number, required: true },
-      score: { type: Number, required: true },
-      lives: { type: Number, required: true },
-      createdAt: { type: Date, required: true },
-    },
-  ],
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    unique: true,
-  },
+	games: [
+		{
+			gameStatsId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "GameStats",
+				required: true,
+			},
+			code: { type: String, required: true },
+			rank: { type: Number, required: true },
+			score: { type: Number, required: true },
+			lives: { type: Number, required: true },
+			createdAt: { type: Date, required: true },
+		},
+	],
+	userId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+		required: true,
+		unique: true,
+	},
 });
 
 /**

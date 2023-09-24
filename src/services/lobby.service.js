@@ -1,7 +1,11 @@
 const ValidationError = require("../errors/ValidationError");
 const Lobby = require("../models/lobby.model");
+const { shuffleArray } = require("../utils/helpers");
+const QuizzService = require("./quizz.service");
 
 module.exports = () => {
+	const quizzService = QuizzService();
+
 	return {
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
 			try {
@@ -128,6 +132,23 @@ module.exports = () => {
 				);
 
 				return lobby?.votedTheme;
+			} catch (error) {
+				throw error;
+			}
+		},
+		async getQuestions({ nbQuestions, theme }) {
+			try {
+				const quizzs = await quizzService.findAll({ theme }, {});
+
+				const allQuestions = quizzs.reduce((questions, quizz) => {
+					return questions.concat(quizz.questions);
+				}, []);
+
+				const shuffledQuestions = shuffleArray(allQuestions);
+
+				const selectedQuestions = shuffledQuestions.slice(0, nbQuestions);
+
+				return selectedQuestions;
 			} catch (error) {
 				throw error;
 			}

@@ -33,53 +33,46 @@ const LobbySchema = new mongoose.Schema({
 		required: true,
 	},
 	settings: {
-		type: new mongoose.Schema(
-			{
-				playersMax: {
-					type: Number,
-					default: 5,
-				},
-				questionTime: {
-					type: Number,
-					default: 30,
-				},
-				lives: {
-					type: Number,
-					default: 3,
-					required: true,
-				},
-				difficulty: {
-					type: Number,
-					default: 1,
-				},
-			},
-			{ _id: false }
-		),
-		required: true,
+		playersMax: {
+			type: Number,
+			default: 5,
+		},
+		questionTime: {
+			type: Number,
+			default: 30,
+		},
+		lives: {
+			type: Number,
+			default: 3,
+			required: true,
+		},
+		difficulty: {
+			type: Number,
+			default: 1,
+		},
+		nbQuestions: {
+			type: Number,
+			default: 15,
+		},
 	},
 	themes: [
 		{
-			type: new mongoose.Schema(
+			voters: [
 				{
-					voters: [
-						{
-							type: mongoose.Schema.Types.ObjectId,
-							ref: "User",
-							default: [],
-						},
-					],
-					name: {
-						type: String,
-						required: true,
-					},
-					id: {
-						type: mongoose.Schema.Types.ObjectId,
-						ref: "QuizzTheme",
-						required: true,
-					},
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "User",
+					default: [],
 				},
-				{ _id: false }
-			),
+			],
+			name: {
+				type: String,
+				required: true,
+			},
+			id: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "QuizzTheme",
+				required: true,
+			},
 		},
 	],
 	votedTheme: {
