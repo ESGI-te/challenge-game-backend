@@ -13,7 +13,6 @@ const UserInvitationRouter = require("./src/routes/userInvitation.router");
 const GameInvitationRouter = require("./src/routes/gameInvitation.router");
 const GameStatsRouter = require("./src/routes/gameStats.router");
 const HistoryRouter = require("./src/routes/history.router");
-const StatsRouter = require("./src/routes/stats.router");
 const StripeRouter = require("./src/routes/stripe.router.js");
 const AchievementRouter = require("./src/routes/achievement.router.js");
 const UserAchievementRouter = require("./src/routes/userAchievement.router.js");
@@ -74,7 +73,6 @@ app.use("/user-invitations", UserInvitationRouter());
 app.use("/game-invitations", GameInvitationRouter());
 app.use("/game-stats", GameStatsRouter());
 app.use("/history", HistoryRouter());
-app.use("/stats", StatsRouter());
 app.use("/achievements", AchievementRouter());
 app.use("/user-achievements", UserAchievementRouter());
 
