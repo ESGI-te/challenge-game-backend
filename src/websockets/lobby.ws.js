@@ -4,12 +4,14 @@ const LobbyService = require("../services/lobby.service");
 const { WS_LOBBY_NAMESPACE } = require("../utils/constants");
 const { generateUID } = require("../utils/helpers");
 const UserAchievementService = require("../services/userAchievement.service");
+const QuizzThemeService = require("../services/quizzTheme.service");
 
 module.exports = (io) => {
 	const lobbyService = LobbyService();
 	const gameService = GameService();
 	const securityService = SecurityService();
 	const userAchievementService = UserAchievementService();
+	const quizzThemeService = QuizzThemeService();
 
 	const namespace = io.of(WS_LOBBY_NAMESPACE);
 
@@ -45,14 +47,28 @@ module.exports = (io) => {
 		endValidation(lobbyId);
 		namespace.to(lobbyId).emit("game_creation_started");
 
-		const { themes, owner, settings } = await lobbyService.findOne(lobbyId);
+		const { owner, settings, votedTheme } = await lobbyService.findOne(lobbyId);
+		const { playersMax, ...gameSettings } = settings;
 		const gameCode = generateUID();
+		const questions = await lobbyService.getQuestions({
+			nbQuestions: gameSettings.nbQuestions,
+			theme: votedTheme,
+		});
+		const theme = await quizzThemeService.findOne(votedTheme);
+
 		const gameData = {
-			themes,
 			owner,
-			settings,
+			settings: {
+				...gameSettings,
+				theme: {
+					id: theme._id.toString(),
+					name: theme.name,
+				},
+			},
+			questions,
 			code: gameCode,
 		};
+
 		const game = await gameService.create(gameData);
 
 		if (!game) {

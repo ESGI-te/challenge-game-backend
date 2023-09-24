@@ -16,6 +16,26 @@ module.exports = (Service, options = {}) => {
 			});
 			res.json(quizzThemes);
 		},
+		async getAllPublic(req, res) {
+			const {
+				_page = 1,
+				_itemsPerPage = 30,
+				// _sort[id]=ASC&_sort[name]=DESC
+				_sort = {},
+			} = req.query;
+
+			const quizzThemes = await Service.findAll(
+				{
+					public: true,
+				},
+				{
+					itemsPerPage: _itemsPerPage,
+					page: _page,
+					order: _sort,
+				}
+			);
+			res.json(quizzThemes);
+		},
 		async create(req, res, next) {
 			try {
 				const quizzTheme = await Service.create(req.body);

@@ -1,10 +1,13 @@
 const jwt = require("jsonwebtoken");
 const UserService = require("./user.service");
+const HistoryService = require("./history.service");
 const ValidationError = require("../errors/ValidationError");
 const bcrypt = require("bcrypt");
-const userService = UserService();
 
 module.exports = () => {
+	const userService = UserService();
+	const historyService = HistoryService();
+
 	return {
 		async register(data) {
 			try {
@@ -15,6 +18,7 @@ module.exports = () => {
 					...userData,
 					password: hashedPassword,
 				});
+				historyService.create({ userId: user._id });
 				return user;
 			} catch (error) {
 				if (error.name === "ValidationError") {
