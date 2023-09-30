@@ -6,6 +6,7 @@ module.exports = (options = {}) => {
 	const controller = GameStatsController(GameStatsService());
 
 	router.get("/average", controller.getAverage);
+	router.get("/code/:code", controller.getOneByCode);
 	router.get("/:id", controller.getOne);
 
 	return router;

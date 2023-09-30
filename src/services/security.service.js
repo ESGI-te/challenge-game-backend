@@ -27,7 +27,6 @@ module.exports = () => {
 				throw error;
 			}
 		},
-
 		async login({ username, password }) {
 			try {
 				const user = await userService.findOne({ username });
@@ -49,9 +48,18 @@ module.exports = () => {
 			try {
 				const userDecoded = jwt.verify(token, process.env.JWT_SECRET);
 				const user = await userService.findOneById(userDecoded.id);
-				return user._doc;
+
+				return user?._doc;
 			} catch (error) {
-				throw error;
+				if (error instanceof jwt.JsonWebTokenError) {
+					// Handle token verification errors
+					throw new Error("Invalid token");
+				} else if (error instanceof jwt.TokenExpiredError) {
+					// Handle token expiration errors
+					throw new Error("Token expired");
+				} else {
+					throw error;
+				}
 			}
 		},
 	};

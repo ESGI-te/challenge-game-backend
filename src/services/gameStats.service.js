@@ -1,12 +1,11 @@
-const dayjs = require("dayjs");
 const ValidationError = require("../errors/ValidationError");
-const Stats = require("../models/gameStats.model");
+const GameStats = require("../models/gameStats.model");
 
 module.exports = () => {
 	return {
 		async findAll(criteria, { page = null, itemsPerPage = null, order = {} }) {
 			try {
-				const gameStat = await Stats.find(criteria)
+				const gameStat = await GameStats.find(criteria)
 					.limit(itemsPerPage)
 					.skip((page - 1) * itemsPerPage)
 					.sort(order)
@@ -18,8 +17,8 @@ module.exports = () => {
 		},
 		async create(data) {
 			try {
-				const stat = await Stats.create(data);
-				return stat;
+				const gameStats = await GameStats.create(data);
+				return gameStats;
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseValidationError(error);
@@ -29,8 +28,16 @@ module.exports = () => {
 		},
 		async findOneById(id) {
 			try {
-				const stat = await Stats.findById(id);
-				return stat;
+				const gameStats = await GameStats.findById(id);
+				return gameStats;
+			} catch (error) {
+				throw error;
+			}
+		},
+		async findOneByCode(code) {
+			try {
+				const gameStats = await GameStats.findOne({ code });
+				return gameStats;
 			} catch (error) {
 				throw error;
 			}
@@ -38,9 +45,9 @@ module.exports = () => {
 		async replaceOne(id, newData) {
 			try {
 				const deleted = await this.deleteOne(id);
-				const stat = await this.create({ ...newData, _id: id });
+				const gameStats = await this.create({ ...newData, _id: id });
 
-				return [stat, !deleted];
+				return [gameStats, !deleted];
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseValidationError(error);
@@ -50,10 +57,10 @@ module.exports = () => {
 		},
 		async updateOne(id, newData) {
 			try {
-				const stat = await Stats.findByIdAndUpdate(id, newData, {
+				const gameStats = await GameStats.findByIdAndUpdate(id, newData, {
 					new: true,
 				});
-				return stat;
+				return gameStats;
 			} catch (error) {
 				if (error.name === "ValidationError") {
 					throw ValidationError.createFromMongooseValidationError(error);
@@ -63,7 +70,7 @@ module.exports = () => {
 		},
 		async deleteOne(id) {
 			try {
-				await Stats.findByIdAndDelete(id);
+				await GameStats.findByIdAndDelete(id);
 				return true;
 			} catch (error) {
 				throw error;
