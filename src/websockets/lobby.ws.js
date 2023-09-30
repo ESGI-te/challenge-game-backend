@@ -75,8 +75,13 @@ module.exports = (io) => {
 			namespace.to(lobbyId).emit("error", "Could not create game");
 			return;
 		}
-		// await userAchievementService.updateAchievementProgress(id, "friends_2");
+
 		namespace.to(lobbyId).emit("game_created", gameCode);
+
+		const timeoutId = setTimeout(() => {
+			lobbyService.deleteOne(lobbyId);
+			clearTimeout(timeoutId);
+		}, 3000);
 	};
 
 	const chooseRandomThemeFromMostVoted = (themes) => {

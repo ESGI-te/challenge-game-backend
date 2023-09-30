@@ -247,7 +247,8 @@ module.exports = (io) => {
 		const player = gamePlayers.get(gameId).get(userId);
 		const game = await gameService.findOne(gameId);
 		const gameStatsData = {
-			gameId,
+			gameSettings: game.settings,
+			code: game.code,
 			players: Array.from(gamePlayers.get(gameId)).map(
 				([userId, { username, score, lives, rank }]) => ({
 					id: userId,
@@ -272,6 +273,10 @@ module.exports = (io) => {
 		await historyService.addHistoryEntry(userId, historyEntry);
 		clearGameData(gameId);
 		namespace.to(gameId).emit("game_over", gameStats._id.toString());
+		const timeoutId = setTimeout(() => {
+			gameService.deleteOne(gameId);
+			clearTimeout(timeoutId);
+		}, 3000);
 	};
 
 	const handleConnection = async (socket) => {
