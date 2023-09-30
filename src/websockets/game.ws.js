@@ -45,6 +45,8 @@ module.exports = (io) => {
 			const playersAnswers = gamePlayersAnswers.get(gameId);
 			const players = gamePlayers.get(gameId);
 
+			if (!players) return;
+
 			let playersWithNoAnswer = Array.from(players)
 				.map(([userId, data]) => ({
 					userId,
@@ -178,7 +180,7 @@ module.exports = (io) => {
 		if (!isCorrect) {
 			const players = gamePlayers.get(gameId);
 			const player = players.get(userId);
-
+			console.log(player);
 			if (player.lives === 0) return;
 
 			const newLives = player.lives - 1;
@@ -226,6 +228,7 @@ module.exports = (io) => {
 			username: user.username,
 		};
 		players.set(user._id.toString(), newPlayer);
+		console.log(gamePlayers.get(gameId));
 		emitPlayers(gameId);
 	};
 
