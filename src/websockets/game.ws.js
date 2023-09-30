@@ -35,6 +35,15 @@ module.exports = (io) => {
 		const firstInterval = startQuestionTimeInterval(gameId);
 
 		const questionsInterval = setInterval(() => {
+			if (
+				Array.from(gamePlayers.get(gameId)).every(
+					(player) => player.isConnected === false
+				)
+			) {
+				handleGameOver(gameId, userId);
+				return;
+			}
+
 			questionIndex++;
 
 			if (questionIndex >= questions.length) {
@@ -180,7 +189,7 @@ module.exports = (io) => {
 		if (!isCorrect) {
 			const players = gamePlayers.get(gameId);
 			const player = players.get(userId);
-			console.log(player);
+
 			if (player.lives === 0) return;
 
 			const newLives = player.lives - 1;
@@ -211,6 +220,7 @@ module.exports = (io) => {
 		gamePlayers.set(game.id, new Map());
 		gamePlayersAnswers.set(game.id, new Set());
 		currentQuestionStartTime.set(game.id, null);
+
 		// Delay the start of the game by 6 seconds to let the players join the game
 		const timeoutId = setTimeout(() => {
 			startQuestionsInterval(game.id, userId, userSocket);
@@ -226,9 +236,9 @@ module.exports = (io) => {
 			lives: gameSettings.get(gameId).lives,
 			rank: players.size + 1,
 			username: user.username,
+			isConnected: true,
 		};
 		players.set(user._id.toString(), newPlayer);
-		console.log(gamePlayers.get(gameId));
 		emitPlayers(gameId);
 	};
 
@@ -236,6 +246,8 @@ module.exports = (io) => {
 		const question = currentQuestion.get(gameId);
 		const questionIndex = gameQuestions.get(gameId).indexOf(question);
 		const players = gamePlayers.get(gameId);
+		const player = players.get(userId);
+		players.set(userId, { ...player, isConnected: true });
 		const hasAnswered = gamePlayersAnswers.get(gameId).has(userId);
 
 		userSocket.emit("new_question", { question, index: questionIndex + 1 });
@@ -276,10 +288,7 @@ module.exports = (io) => {
 		await historyService.addHistoryEntry(userId, historyEntry);
 		clearGameData(gameId);
 		namespace.to(gameId).emit("game_over", gameStats._id.toString());
-		const timeoutId = setTimeout(() => {
-			gameService.deleteOne(gameId);
-			clearTimeout(timeoutId);
-		}, 3000);
+		gameService.deleteOne(gameId);
 	};
 
 	const handleConnection = async (socket) => {
@@ -299,10 +308,8 @@ module.exports = (io) => {
 			return;
 		}
 
-		const isGameExist =
-			gameSettings.has(game.id) &&
-			gameQuestions.has(game.id) &&
-			questionIntervals.has(game.id);
+		const isGameExist = gameSettings.has(game.id) && gameQuestions.has(game.id);
+
 		const isNewUser = !gamePlayers.get(game.id)?.has(user._id.toString());
 
 		socket.join(game.id);
@@ -333,13 +340,10 @@ module.exports = (io) => {
 
 		socket.on("disconnect", async () => {
 			socket.leave(game.id);
-
-			namespace.to(game.id).emit("notification", {
-				title: "Someone just left",
-				description: `${user?.username} just left the game`,
-			});
-
-			// namespace.to(game.id).emit("game", players);
+			const players = gamePlayers.get(game.id);
+			const player = players.get(user._id.toString());
+			players.set(user._id.toString(), { ...player, isConnected: false });
+			emitPlayers(game.id);
 		});
 	};
 

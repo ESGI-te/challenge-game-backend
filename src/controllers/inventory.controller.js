@@ -1,7 +1,10 @@
 const SecurityService = require("../services/security.service");
+const QuizzThemeService = require("../services/quizzTheme.service");
 
 module.exports = (Service, options = {}) => {
 	const securityService = SecurityService();
+	const quizzThemeService = QuizzThemeService();
+
 	return {
 		// Méthode pour récupérer tous les items en fonction des critères de recherche, de pagination, etc.
 		async getAll(req, res) {
@@ -75,22 +78,30 @@ module.exports = (Service, options = {}) => {
 			const token = req.headers["authorization"]?.split(" ")[1];
 			const user = await securityService.getUserFromToken(token);
 			const inventory = await Service.findOneByUser(user._id);
+
 			if (!inventory) {
 				res.sendStatus(404);
-			} else {
-				res.json(inventory.themes);
 			}
+
+			const themes = await quizzThemeService.findAll(
+				{
+					_id: { $in: inventory.themes },
+				},
+				{}
+			);
+
+			return res.json(themes);
 		},
 
 		async getThemesPackByUser(req, res) {
 			const token = req.headers["authorization"]?.split(" ")[1];
 			const user = await securityService.getUserFromToken(token);
 			const inventory = await Service.findOneByUser(user._id);
+
 			if (!inventory) {
 				res.sendStatus(404);
-			} else {
-				res.json(inventory.theme_packs);
 			}
+			return res.json(inventory.theme_packs);
 		},
 	};
 };

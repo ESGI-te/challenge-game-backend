@@ -64,10 +64,6 @@ module.exports = (options = {}) => {
 
 			const userInventory = await inventoryService.findOneByUser(user._id);
 
-			if (!userInventory) {
-				await inventoryService.create({ userId: user_id });
-			}
-
 			const itemType = req.query.item_type;
 			const itemName = getsession.data[0].description;
 
