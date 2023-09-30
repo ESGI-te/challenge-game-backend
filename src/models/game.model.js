@@ -6,18 +6,9 @@ const mongoose = require("mongoose");
 
 const GameSchema = new mongoose.Schema(
 	{
-		isStarted: {
-			type: Boolean,
-			default: false,
-		},
 		code: {
 			type: String,
 			required: true,
-		},
-		theme: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "QuizzTheme",
-			default: null,
 		},
 		players: [
 			{
@@ -85,13 +76,6 @@ const GameSchema = new mongoose.Schema(
 		owner: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-		},
-		currentQuestion: {
-			type: Object,
-			default: null,
-		},
-		currentQuestionStartTime: {
-			type: Date,
 		},
 		questions: [
 			{

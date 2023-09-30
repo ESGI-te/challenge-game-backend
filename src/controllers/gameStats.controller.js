@@ -30,6 +30,14 @@ module.exports = (Service, options = {}) => {
 				res.sendStatus(404);
 			} else res.sendStatus(204);
 		},
+		async getOneByCode(req, res) {
+			const game = await Service.findOneByCode(req.params.code);
+			if (!game) {
+				res.sendStatus(404);
+			} else {
+				res.json(game);
+			}
+		},
 		async getAverage(req, res) {
 			try {
 				const token = req.headers["authorization"]?.split(" ")[1];

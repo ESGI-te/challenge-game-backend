@@ -5,9 +5,42 @@ const mongoose = require("mongoose");
  */
 
 const GameStatSchema = new mongoose.Schema({
-	gameId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Game",
+	gameSettings: {
+		playersMax: {
+			type: Number,
+			default: 5,
+		},
+		questionTime: {
+			type: Number,
+			default: 30,
+		},
+		lives: {
+			type: Number,
+			default: 3,
+			required: true,
+		},
+		difficulty: {
+			type: Number,
+			default: 1,
+		},
+		nbQuestions: {
+			type: Number,
+			default: 15,
+		},
+		theme: {
+			id: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "QuizzTheme",
+				required: true,
+			},
+			name: {
+				type: String,
+				required: true,
+			},
+		},
+	},
+	code: {
+		type: String,
 		required: true,
 	},
 	players: [
