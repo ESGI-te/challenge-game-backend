@@ -30,8 +30,8 @@ module.exports = (options = {}) => {
 					payment_method_types: ["card"],
 					line_items: items,
 					mode: "payment",
-					success_url: req.body.product.successUrl,
-					cancel_url: req.body.product.cancelUrl,
+					success_url: process.env.CLIENT_URL + req.body.product.successUrl,
+					cancel_url: process.env.CLIENT_URL + req.body.product.cancelUrl,
 				});
 
 				// res.json({ id: session.id });
