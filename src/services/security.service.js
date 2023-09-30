@@ -3,10 +3,12 @@ const UserService = require("./user.service");
 const HistoryService = require("./history.service");
 const ValidationError = require("../errors/ValidationError");
 const bcrypt = require("bcrypt");
+const InventoryService = require("./inventory.service");
 
 module.exports = () => {
 	const userService = UserService();
 	const historyService = HistoryService();
+	const inventoryService = InventoryService();
 
 	return {
 		async register(data) {
@@ -19,6 +21,7 @@ module.exports = () => {
 					password: hashedPassword,
 				});
 				historyService.create({ userId: user._id });
+				inventoryService.create({ userId: user._id });
 				return user;
 			} catch (error) {
 				if (error.name === "ValidationError") {
