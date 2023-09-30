@@ -341,6 +341,7 @@ module.exports = (io) => {
 		socket.on("disconnect", async () => {
 			socket.leave(game.id);
 			const players = gamePlayers.get(game.id);
+			if (!players) return;
 			const player = players.get(user._id.toString());
 			players.set(user._id.toString(), { ...player, isConnected: false });
 			emitPlayers(game.id);
